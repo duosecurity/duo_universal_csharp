@@ -19,12 +19,13 @@ namespace DuoUniversal
         /// <param name="clientId">OIDC Client Id</param>
         /// <param name="clientSecret">OIDC Client secret, used for signing the token</param>
         /// <param name="audience">OIDC Audience</param>
+        /// <param name="additionalClaims">TODO</param>
         /// <returns>A signed JWT</returns>
-        internal static string CreateSignedJwt(string clientId, string clientSecret, string audience)
+        internal static string CreateSignedJwt(string clientId, string clientSecret, string audience, IDictionary<string, string> addiitonalClaims)
         {
             ValidateArguments(clientId, clientSecret, audience);
 
-            string payload = GeneratePayload(clientId, audience);
+            string payload = GeneratePayload(clientId, audience, addiitonalClaims);
 
             return SignPayload(payload, clientSecret);
         }
@@ -59,10 +60,11 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="clientId">OIDC Client Id</param>
         /// <param name="audience">OIDC Audience</param>
+        /// <param name="additionalClaims">TODO</param>
         /// <returns>A JSON string of the provided parameters</returns>
-        private static string GeneratePayload(string clientId, string audience)
+        private static string GeneratePayload(string clientId, string audience, IDictionary<string, string> additionalClaims)
         {
-            IDictionary<string, string> payloadParams = GenerateParams(clientId, audience);
+            IDictionary<string, string> payloadParams = GenerateParams(clientId, audience, additionalClaims);
 
             return SerializeParams(payloadParams);
         }
@@ -72,17 +74,25 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="clientId">OIDC Client Id</param>
         /// <param name="audience">OIDC Audience</param>
+        /// <param name="additionalClaims">TODO</param>
         /// <returns>An IDictionary containing the provided parameters keyed by the offical JWT claims identifiers</returns>
-        private static IDictionary<string, string> GenerateParams(string clientId, string audience)
+        private static IDictionary<string, string> GenerateParams(string clientId, string audience, IDictionary<string, string> additionalClaims)
         {
             string jti = Guid.NewGuid().ToString();
 
-            return new Dictionary<string, string>() {
+            var claims = new Dictionary<string, string>() {
                 {JwtRegisteredClaimNames.Iss, clientId},
-                {JwtRegisteredClaimNames.Sub, clientId},
                 {JwtRegisteredClaimNames.Aud, audience},
                 {JwtRegisteredClaimNames.Jti, jti}
             };
+
+            foreach (KeyValuePair<string, string> claim in additionalClaims)
+            {
+                // TODO any value in checking for collision?
+                claims.Add(claim.Key, claim.Value);
+            }
+
+            return claims;
         }
 
         /// <summary>

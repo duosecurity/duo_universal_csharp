@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace DuoUniversal
 {
@@ -39,7 +40,12 @@ namespace DuoUniversal
         {
             string healthCheckUrl = string.Format(HEALTH_CHECK_ENDPOINT, this.ApiHost);
 
-            string jwt = JwtUtils.CreateSignedJwt(ClientId, ClientSecret, healthCheckUrl);
+            var additionalClaims = new Dictionary<string, string>
+            {
+                {JwtRegisteredClaimNames.Sub, ClientId}
+            };
+
+            string jwt = JwtUtils.CreateSignedJwt(ClientId, ClientSecret, healthCheckUrl, additionalClaims);
 
             var parameters = new Dictionary<string, string>() {  // TODO de-magic-string this
                 {"client_id", ClientId},
