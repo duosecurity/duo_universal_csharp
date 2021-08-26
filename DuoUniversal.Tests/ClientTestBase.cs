@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 
 namespace DuoUniversal.Tests
 {
@@ -11,6 +10,7 @@ namespace DuoUniversal.Tests
         protected const string CLIENT_ID = "client id";
         protected const string CLIENT_SECRET = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         protected const string API_HOST = "fake.api.host";
+        protected const string REDIRECT_URI = "https://fake.com/fake";
     }
 
     internal class HttpExcepter : HttpMessageHandler

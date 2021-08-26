@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.Serialization;
@@ -15,20 +16,23 @@ namespace DuoUniversal
         internal const int MAXIMUM_STATE_LENGTH = 1024;
 
         private const string HEALTH_CHECK_ENDPOINT = "https://{0}/oauth/v1/health_check";
+        private const string AUTH_ENDPOINT = "https://{0}/oauth/v1/authorize";
         private string ClientId { get; }
         private string ClientSecret { get; }
         private string ApiHost { get; }
+        private string RedirectUri { get; }
         private readonly HttpClient httpClient;
 
-        public Client(string clientId, string clientSecret, string apiHost) : this(clientId, clientSecret, apiHost, new HttpClientHandler())
+        public Client(string clientId, string clientSecret, string apiHost, string redirectUri) : this(clientId, clientSecret, apiHost, redirectUri, new HttpClientHandler())
         {
         }
 
-        public Client(string clientId, string clientSecret, string apiHost, HttpMessageHandler httpMessageHandler) // TODO replace with Builder pattern later
+        public Client(string clientId, string clientSecret, string apiHost, string redirectUri, HttpMessageHandler httpMessageHandler) // TODO replace with Builder pattern later
         {
             this.ClientId = clientId; // TODO validations on these
             this.ClientSecret = clientSecret;
             this.ApiHost = apiHost;
+            this.RedirectUri = redirectUri;
             httpClient = new HttpClient(httpMessageHandler);
         }
 
@@ -38,7 +42,7 @@ namespace DuoUniversal
         /// <returns>true if Duo is healthy, false otherwise</returns>
         public async Task<bool> DoHealthCheck()
         {
-            string healthCheckUrl = string.Format(HEALTH_CHECK_ENDPOINT, this.ApiHost);
+            string healthCheckUrl = CustomizeApiUri(HEALTH_CHECK_ENDPOINT);
 
             var additionalClaims = new Dictionary<string, string>
             {
@@ -62,6 +66,95 @@ namespace DuoUniversal
                 // Interpret HTTP exceptions as Duo being unhealthy
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Generate the URI to a Duo endpoint that will perform a 2FA authentication for the specified user.
+        /// </summary>
+        /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
+        /// <param name="state">A unique identifier for the authentication attempt</param>
+        /// <returns>A URL to redirect the user's browser to</returns>
+        public string GenerateAuthUri(string username, string state)
+        {
+            ValidateAuthUriInputs(username, state);
+
+            string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
+
+            string authJwt = GenerateAuthJwt(username, state, authEndpoint);
+
+            return BuildAuthUri(authEndpoint, authJwt);
+        }
+
+        /// <summary>
+        /// Customize a URI template based on the Duo API Host value
+        /// </summary>
+        /// <param name="baseUrl">The URL template</param>
+        /// <returns>The completed URL</returns>
+        private string CustomizeApiUri(string baseUrl)
+        {
+            return string.Format(baseUrl, ApiHost);
+        }
+
+        /// <summary>
+        /// Ensure the provided username and state inputs are valid:
+        ///   Username cannot be blank/whitespace
+        ///   State cannot be blank/whitespace, and must be between a minimum and maximum length
+        /// </summary>
+        /// <param name="username">The username to check</param>
+        /// <param name="state">The state value to check</param>
+        private void ValidateAuthUriInputs(string username, string state)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new DuoException("username cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(state) || state.Length < MINIMUM_STATE_LENGTH || state.Length > MAXIMUM_STATE_LENGTH)
+            {
+                throw new DuoException($"state must be a non-empty string between {MINIMUM_STATE_LENGTH} and {MAXIMUM_STATE_LENGTH}.");
+            }
+        }
+
+        /// <summary>
+        /// Generate a JWT authentication request to be sent to Duo
+        /// </summary>
+        /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
+        /// <param name="state">A unique identifier for the authentication attempt</param>
+        /// <param name="authEndpoint">The Duo endpoint URI</param>
+        /// <returns>A signed JWT</returns>
+        private string GenerateAuthJwt(string username, string state, string authEndpoint)
+        {
+            var additionalClaims = new Dictionary<string, string> // TODO de-magic-string these
+            {
+                {"client_id", ClientId},
+                {"duo_uname", username},
+                {"redirect_uri", RedirectUri},
+                {"response_type", "code"},
+                {"scope", "openid"},
+                {"state", state}
+                // TODO T129715 support nonce
+                // TODO T129717 support overriding use_duo_code_attribute
+            };
+
+            return JwtUtils.CreateSignedJwt(ClientId, ClientSecret, authEndpoint, additionalClaims);
+        }
+
+        /// <summary>
+        /// Construct the full URI to the Duo the authentication request endpoint
+        /// </summary>
+        /// <param name="authEndpoint">The base endpoint URI</param>
+        /// <param name="authJwt">An authentication request JWT</param>
+        /// <returns>The fully-built URI</returns>
+        private string BuildAuthUri(string authEndpoint, string authJwt)
+        {
+            // NB This handles the URL encoding
+            NameValueCollection queryStringBuilder = System.Web.HttpUtility.ParseQueryString(string.Empty);
+            queryStringBuilder.Add("client_id", ClientId);  // TODO de-magic-string these
+            queryStringBuilder.Add("request", authJwt);
+            queryStringBuilder.Add("response_type", "code");
+            string queryString = queryStringBuilder.ToString();
+
+            return $"{authEndpoint}?{queryString}";
         }
 
         /// <summary>
@@ -111,7 +204,7 @@ namespace DuoUniversal
             {
                 throw new ArgumentException("Invalid state length " + length + " requested.");  // TODO indicate what the valid lengths are
             }
-    
+
             return Utils.GenerateRandomString(length);
         }
     }

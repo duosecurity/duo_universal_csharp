@@ -14,18 +14,20 @@ namespace DuoUniversal
         private const int FIVE_MINUTES = 5;
 
         /// <summary>
-        /// Generate an OIDC-compliant JWT for the specified client id and audience, signed with the specified secret
+        /// Generate an OIDC-compliant JWT for the specified client id and audience, signed with the specified secret.
+        /// The "iss", "aud", "jti", "iat", "nbf", and "exp" claims will be automatically added.
+        /// Additional claims to be included can be specified in the additionalClaims argument
         /// </summary>
         /// <param name="clientId">OIDC Client Id</param>
         /// <param name="clientSecret">OIDC Client secret, used for signing the token</param>
         /// <param name="audience">OIDC Audience</param>
-        /// <param name="additionalClaims">TODO</param>
+        /// <param name="additionalClaims">Any additional claims to include in the JWT payload</param>
         /// <returns>A signed JWT</returns>
-        internal static string CreateSignedJwt(string clientId, string clientSecret, string audience, IDictionary<string, string> addiitonalClaims)
+        internal static string CreateSignedJwt(string clientId, string clientSecret, string audience, IDictionary<string, string> additionalClaims)
         {
             ValidateArguments(clientId, clientSecret, audience);
 
-            string payload = GeneratePayload(clientId, audience, addiitonalClaims);
+            string payload = GeneratePayload(clientId, audience, additionalClaims);
 
             return SignPayload(payload, clientSecret);
         }
@@ -60,7 +62,7 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="clientId">OIDC Client Id</param>
         /// <param name="audience">OIDC Audience</param>
-        /// <param name="additionalClaims">TODO</param>
+        /// <param name="additionalClaims">Any additional claims to include in the JWT payload</param>
         /// <returns>A JSON string of the provided parameters</returns>
         private static string GeneratePayload(string clientId, string audience, IDictionary<string, string> additionalClaims)
         {
@@ -74,7 +76,7 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="clientId">OIDC Client Id</param>
         /// <param name="audience">OIDC Audience</param>
-        /// <param name="additionalClaims">TODO</param>
+        /// <param name="additionalClaims">Any additional claims to include in the JWT payload</param>
         /// <returns>An IDictionary containing the provided parameters keyed by the offical JWT claims identifiers</returns>
         private static IDictionary<string, string> GenerateParams(string clientId, string audience, IDictionary<string, string> additionalClaims)
         {

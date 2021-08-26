@@ -14,7 +14,7 @@ namespace DuoUniversal.Tests
 
         private static Client MakeClient(HttpMessageHandler handler)
         {
-            return new Client(CLIENT_ID, CLIENT_SECRET, API_HOST, handler);
+            return new Client(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI, handler);
         }
 
         [Test]
