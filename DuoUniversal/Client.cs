@@ -175,24 +175,6 @@ namespace DuoUniversal
             return await httpResponse.Content.ReadFromJsonAsync<T>();
         }
 
-        // TODO probably move to a different file to get them out of the way because there'll be more later
-        [DataContract]
-        private class HealthCheckResponseDetail
-        {
-            public int Timestamp { get; set; }
-            public string Code { get; set; }
-            public string Message { get; set; }
-            [DataMember(Name = "message_detail")]
-            public string MessageDetail { get; set; }
-        }
-
-        [DataContract]
-        private class HealthCheckResponse
-        {
-            public string Stat { get; set; }
-            public HealthCheckResponseDetail Response { get; set; }
-        }
-
         public static string GenerateState()
         {
             return GenerateState(DEFAULT_STATE_LENGTH);
