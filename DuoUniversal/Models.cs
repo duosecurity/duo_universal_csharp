@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace DuoUniversal
 {
@@ -14,8 +16,136 @@ namespace DuoUniversal
         public int Timestamp { get; set; }
         public string Code { get; set; }
         public string Message { get; set; }
-        // [DataMember(Name = "message_detail")] // TODO this didn't work, figure it out
+        // [DataMember(Name = "message_detail")] // TODO this didn't work, figure it out, I bet it's the JsonPropertyName stuff below
         public string Message_detail { get; set; }
     }
- 
+
+    public class IdToken   // TODO can this be immutable to the consumer?
+    {
+        // Custom Duo fields
+        public AuthContext AuthContext { get; set; }
+        public AuthResult AuthResult { get; set; }
+        public int AuthTime { get; set; }
+        public string Username { get; set; }
+        // Standard JWT stuff
+        public string Iss { get; set; }
+        public DateTime Exp { get; set; }
+        public DateTime Iat { get; set; }
+        public string Sub { get; set; }
+        public string Aud { get; set; }
+        public string Nonce { get; set; }
+    }
+
+    public class AuthContext
+    {
+        [JsonPropertyName("access_device")]
+        public AccessDevice AccessDevice { get; set; }
+        [JsonPropertyName("alias")]
+        public string Alias { get; set; }
+        [JsonPropertyName("application")]
+        public Application Application { get; set; }
+        [JsonPropertyName("auth_device")]
+        public AuthDevice AuthDevice { get; set; }
+        [JsonPropertyName("email")]
+        public string Email { get; set; }
+        [JsonPropertyName("event_type")]
+        public string EventType { get; set; }
+        [JsonPropertyName("factor")]
+        public string Factor { get; set; }
+        [JsonPropertyName("isotimestamp")]
+        public string IsoTimestamp { get; set; }
+        [JsonPropertyName("ood_software")]
+        public string OodSoftware { get; set; }  // TODO what type is this
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; }
+        [JsonPropertyName("result")]
+        public string Result { get; set; }
+        [JsonPropertyName("timestamp")]
+        public int Timestamp { get; set; }
+        [JsonPropertyName("trusted_endpoint_status")]
+        public string TrustedEndpointStatus { get; set; }
+        [JsonPropertyName("txid")]
+        public string Txid { get; set; }
+        [JsonPropertyName("user")]
+        public User User { get; set; }
+
+    }
+
+    public class AccessDevice
+    {
+        [JsonPropertyName("browser")]
+        public string Browser { get; set; }
+        [JsonPropertyName("browser_version")]
+        public string BrowserVersion { get; set; }
+        [JsonPropertyName("flash_version")]
+        public string FlashVersion { get; set; }
+        [JsonPropertyName("hostname")]
+        public string Hostname { get; set; } // TODO what type is this
+        [JsonPropertyName("ip")]
+        public string IpAddress { get; set; }
+        [JsonPropertyName("is_encryption_enabled")]
+        public string IsEncryptionEnabled { get; set; }
+        [JsonPropertyName("is_firewall_enabled")]
+        public string IsFirewallEnabled { get; set; }
+        [JsonPropertyName("is_password_set")]
+        public string IsPasswordSet { get; set; }
+        [JsonPropertyName("java_version")]
+        public string JavaVersion { get; set; }
+        [JsonPropertyName("location")]
+        public Location Location { get; set; }
+        [JsonPropertyName("os")]
+        public string OperatingSystem { get; set; }
+        [JsonPropertyName("os_version")]
+        public string OperatingSystemVersion { get; set; }
+        [JsonPropertyName("security_agents")]
+        public string SecurityAgents { get; set; }
+    }
+
+    public class Location
+    {
+        [JsonPropertyName("city")]
+        public string City { get; set; }
+        [JsonPropertyName("country")]
+        public string Country { get; set; }
+        [JsonPropertyName("state")]
+        public string State { get; set; }
+    }
+
+    public class Application
+    {
+        [JsonPropertyName("key")]
+        public string Key { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+    }
+
+    public class AuthDevice
+    {
+        [JsonPropertyName("ip")]
+        public string IpAddress { get; set; }
+        [JsonPropertyName("location")]
+        public Location Location { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+    }
+
+    public class User
+    {
+        [JsonPropertyName("groups")]
+        public List<string> Groups { get; set; } // TODO make sure this is right
+        [JsonPropertyName("key")]
+        public string Key { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+    }
+
+    public class AuthResult
+    {
+        [JsonPropertyName("result")]
+        public string Result { get; set; }
+        [JsonPropertyName("status")]
+        public string Status { get; set; }
+        [JsonPropertyName("status_msg")]
+        public string StatusMsg { get; set; }
+    }
 }

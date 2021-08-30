@@ -29,6 +29,17 @@ namespace DuoUniversal
 
             string payload = GeneratePayload(clientId, audience, additionalClaims);
 
+            return CreateJwtFromPayload(payload, clientSecret);
+        }
+
+        /// <summary>
+        /// Generate a signed JWT from the given JSON payload, using the provided secret 
+        /// </summary>
+        /// <param name="payload">The JSON payload to be the body of the JWT</param>
+        /// <param name="clientSecret">The shared secret, must be at least 16 characters or an exception will occur</param>
+        /// <returns>The signed JWT with the given payload</returns>
+        internal static string CreateJwtFromPayload(string payload, string clientSecret)
+        {
             return SignPayload(payload, clientSecret);
         }
 
