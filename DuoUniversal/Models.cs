@@ -20,7 +20,19 @@ namespace DuoUniversal
         public string Message_detail { get; set; }
     }
 
-    public class IdToken   // TODO can this be immutable to the consumer?
+    internal class TokenResponse
+    {
+        [JsonPropertyName("id_token")]
+        public string IdToken { get; set; }
+        [JsonPropertyName("access_token")]
+        public string AccessToken { get; set; }
+        [JsonPropertyName("token_type")]
+        public string TokenType { get; set; }
+        [JsonPropertyName("expires_in")]
+        public int ExpiresIn { get; set; }
+    }
+
+    public class IdToken
     {
         // Custom Duo fields
         public AuthContext AuthContext { get; set; }

@@ -17,6 +17,7 @@ namespace DuoUniversal
 
         private const string HEALTH_CHECK_ENDPOINT = "https://{0}/oauth/v1/health_check";
         private const string AUTH_ENDPOINT = "https://{0}/oauth/v1/authorize";
+        private const string TOKEN_ENDPOINT = "https://{0}/oauth/v1/token";
         private string ClientId { get; }
         private string ClientSecret { get; }
         private string ApiHost { get; }
@@ -44,12 +45,7 @@ namespace DuoUniversal
         {
             string healthCheckUrl = CustomizeApiUri(HEALTH_CHECK_ENDPOINT);
 
-            var additionalClaims = new Dictionary<string, string>
-            {
-                {JwtRegisteredClaimNames.Sub, ClientId}
-            };
-
-            string jwt = JwtUtils.CreateSignedJwt(ClientId, ClientSecret, healthCheckUrl, additionalClaims);
+            string jwt = GenerateSubjectJwt(healthCheckUrl);
 
             var parameters = new Dictionary<string, string>() {  // TODO de-magic-string this
                 {"client_id", ClientId},
@@ -83,6 +79,51 @@ namespace DuoUniversal
             string authJwt = GenerateAuthJwt(username, state, authEndpoint);
 
             return BuildAuthUri(authEndpoint, authJwt);
+        }
+
+        public async Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username)
+        {
+            string tokenEndpoint = CustomizeApiUri(TOKEN_ENDPOINT);
+
+            string tokenJwt = GenerateSubjectJwt(tokenEndpoint);
+
+            var parameters = new Dictionary<string, string>() {  // TODO de-magic-string this
+                {"code", duoCode},
+                {"client_id", ClientId},
+                {"client_assertion", tokenJwt},
+                {"client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
+                {"grant_type", "authorization_code"},
+                {"redirect_uri", RedirectUri},
+            };
+
+            TokenResponse tokenResponse;
+
+            try
+            {
+                tokenResponse = await DoPost<TokenResponse>(tokenEndpoint, parameters);
+            }
+            catch (HttpRequestException e)
+            {
+                throw new DuoException("Error exchanging the code for a 2fa token", e);
+            }
+
+            IdToken idToken;
+            try
+            {
+                JwtUtils.ValidateJwt(tokenResponse.IdToken, ClientId, ClientSecret, tokenEndpoint);
+                idToken = Utils.DecodeToken(tokenResponse.IdToken);
+            }
+            catch (Exception e)
+            {
+                throw new DuoException("Error while parsing the token api response", e);
+            }
+
+            if (idToken.Username != username)
+            {
+                throw new DuoException("The specified username does not match the username from Duo");
+            }
+
+            return idToken;
         }
 
         /// <summary>
@@ -134,9 +175,20 @@ namespace DuoUniversal
                 {"state", state}
                 // TODO T129715 support nonce
                 // TODO T129717 support overriding use_duo_code_attribute
-            };
+            };  // TODO would it hurt to send the subject claim?  if not, I could get rid of GenerateSubjectJwt...
 
             return JwtUtils.CreateSignedJwt(ClientId, ClientSecret, authEndpoint, additionalClaims);
+        }
+
+        private string GenerateSubjectJwt(string audience)
+        {
+            // Add the subject claim
+            var additionalClaims = new Dictionary<string, string>
+            {
+                {JwtRegisteredClaimNames.Sub, ClientId}
+            };
+
+            return JwtUtils.CreateSignedJwt(ClientId, ClientSecret, audience, additionalClaims);
         }
 
         /// <summary>
@@ -169,11 +221,12 @@ namespace DuoUniversal
             HttpContent content = new FormUrlEncodedContent(parameters);
             HttpResponseMessage httpResponse = await httpClient.PostAsync(url, content);
 
-            // This can throw an HttpRequestException
+            // This will throw an HttpRequestException if the result code is not in the 200s
             httpResponse.EnsureSuccessStatusCode();
 
             return await httpResponse.Content.ReadFromJsonAsync<T>();
         }
+
 
         public static string GenerateState()
         {

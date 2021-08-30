@@ -43,6 +43,12 @@ namespace DuoUniversal
             return SignPayload(payload, clientSecret);
         }
 
+        internal static void ValidateJwt(string jwt, string subject, string secret, string issuer)
+        {
+            // TODO T129712 write this
+            // TODO and tests
+        }
+
         /// <summary>
         /// Validates the arguments and throws an exception for any that are empty strings
         /// </summary>
@@ -91,7 +97,7 @@ namespace DuoUniversal
         /// <returns>An IDictionary containing the provided parameters keyed by the offical JWT claims identifiers</returns>
         private static IDictionary<string, string> GenerateParams(string clientId, string audience, IDictionary<string, string> additionalClaims)
         {
-            string jti = Guid.NewGuid().ToString();
+            string jti = Guid.NewGuid().ToString(); // TODO just generate a random string instead
 
             var claims = new Dictionary<string, string>() {
                 {JwtRegisteredClaimNames.Iss, clientId},

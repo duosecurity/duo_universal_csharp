@@ -51,7 +51,7 @@ namespace DuoUniversal.Tests
             Assert.AreEqual(NAME, idToken.AuthContext.User.Name);
         }
 
-        private static string CreateJwtString()
+        internal static string CreateJwtString()
         {
             // Make a representative id token
             var payloadData = new
