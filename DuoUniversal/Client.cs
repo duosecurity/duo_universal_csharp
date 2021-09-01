@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace DuoUniversal
 {
@@ -47,9 +45,9 @@ namespace DuoUniversal
 
             string jwt = GenerateSubjectJwt(healthCheckUrl);
 
-            var parameters = new Dictionary<string, string>() {  // TODO de-magic-string this
-                {"client_id", ClientId},
-                {"client_assertion", jwt}
+            var parameters = new Dictionary<string, string>() {
+                {Labels.CLIENT_ID, ClientId},
+                {Labels.CLIENT_ASSERTION, jwt}
             };
 
             try
@@ -81,19 +79,27 @@ namespace DuoUniversal
             return BuildAuthUri(authEndpoint, authJwt);
         }
 
+        /// <summary>
+        /// Send the authorization code provided by Duo back to Duo in exchange for an Id Token authenticating the user and
+        /// providing details about the authentication.
+        /// Will raise a DuoException if the username does not match the Id Token.
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <returns>An IdToken authenticating the user and describing the authentication</returns>
         public async Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username)
         {
             string tokenEndpoint = CustomizeApiUri(TOKEN_ENDPOINT);
 
             string tokenJwt = GenerateSubjectJwt(tokenEndpoint);
 
-            var parameters = new Dictionary<string, string>() {  // TODO de-magic-string this
-                {"code", duoCode},
-                {"client_id", ClientId},
-                {"client_assertion", tokenJwt},
-                {"client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
-                {"grant_type", "authorization_code"},
-                {"redirect_uri", RedirectUri},
+            var parameters = new Dictionary<string, string>() {
+                {Labels.CODE, duoCode},
+                {Labels.CLIENT_ID, ClientId},
+                {Labels.CLIENT_ASSERTION, tokenJwt},
+                {Labels.CLIENT_ASSERTION_TYPE, Labels.JWT_BEARER_TYPE},
+                {Labels.GRANT_TYPE, Labels.AUTHORIZATION_CODE},
+                {Labels.REDIRECT_URI, RedirectUri},
             };
 
             TokenResponse tokenResponse;
@@ -165,16 +171,16 @@ namespace DuoUniversal
         /// <returns>A signed JWT</returns>
         private string GenerateAuthJwt(string username, string state, string authEndpoint)
         {
-            var additionalClaims = new Dictionary<string, string> // TODO de-magic-string these
+            var additionalClaims = new Dictionary<string, string>
             {
-                {"client_id", ClientId},
-                {"duo_uname", username},
-                {"redirect_uri", RedirectUri},
-                {"response_type", "code"},
-                {"scope", "openid"},
-                {"state", state}
-                // TODO T129715 support nonce
-                // TODO T129717 support overriding use_duo_code_attribute
+                {Labels.CLIENT_ID, ClientId},
+                {Labels.DUO_UNAME, username},
+                {Labels.REDIRECT_URI, RedirectUri},
+                {Labels.RESPONSE_TYPE, Labels.CODE},
+                {Labels.SCOPE, Labels.OPENID},
+                {Labels.STATE, state}
+                // TODO support nonce
+                // TODO support overriding use_duo_code_attribute
             };  // TODO would it hurt to send the subject claim?  if not, I could get rid of GenerateSubjectJwt...
 
             return JwtUtils.CreateSignedJwt(ClientId, ClientSecret, authEndpoint, additionalClaims);
@@ -185,7 +191,7 @@ namespace DuoUniversal
             // Add the subject claim
             var additionalClaims = new Dictionary<string, string>
             {
-                {JwtRegisteredClaimNames.Sub, ClientId}
+                {Labels.SUB, ClientId}
             };
 
             return JwtUtils.CreateSignedJwt(ClientId, ClientSecret, audience, additionalClaims);
@@ -201,9 +207,9 @@ namespace DuoUniversal
         {
             // NB This handles the URL encoding
             NameValueCollection queryStringBuilder = System.Web.HttpUtility.ParseQueryString(string.Empty);
-            queryStringBuilder.Add("client_id", ClientId);  // TODO de-magic-string these
-            queryStringBuilder.Add("request", authJwt);
-            queryStringBuilder.Add("response_type", "code");
+            queryStringBuilder.Add(Labels.CLIENT_ID, ClientId);
+            queryStringBuilder.Add(Labels.REQUEST, authJwt);
+            queryStringBuilder.Add(Labels.RESPONSE_TYPE, Labels.CODE);
             string queryString = queryStringBuilder.ToString();
 
             return $"{authEndpoint}?{queryString}";
@@ -237,7 +243,7 @@ namespace DuoUniversal
         {
             if (length > MAXIMUM_STATE_LENGTH || length < MINIMUM_STATE_LENGTH)
             {
-                throw new ArgumentException("Invalid state length " + length + " requested.");  // TODO indicate what the valid lengths are
+                throw new DuoException($"Invalid state length {length} requested.  State must be between {MINIMUM_STATE_LENGTH} and {MAXIMUM_STATE_LENGTH}");
             }
 
             return Utils.GenerateRandomString(length);

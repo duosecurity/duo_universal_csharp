@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -11,11 +10,6 @@ namespace DuoUniversal.Tests
     {
         private const string HEALTHY_CONTENT = @"{""stat"": ""OK"", ""response"": {""timestamp"": ""1629837896""}}";
         private const string UNHEALTHY_CONTENT = @"{""stat"": ""FAIL"", ""response"": {""code"": ""40301"", ""timestamp"": ""1629837896"", ""message"": ""ohnoes"", ""message_detail"": ""ohnoes""}}";
-
-        private static Client MakeClient(HttpMessageHandler handler)
-        {
-            return new Client(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI, handler);
-        }
 
         [Test]
         public async Task TestSuccess()

@@ -16,8 +16,8 @@ namespace DuoUniversal
         public int Timestamp { get; set; }
         public string Code { get; set; }
         public string Message { get; set; }
-        // [DataMember(Name = "message_detail")] // TODO this didn't work, figure it out, I bet it's the JsonPropertyName stuff below
-        public string Message_detail { get; set; }
+        [JsonPropertyName("message_detail")]
+        public string MessageDetail { get; set; }
     }
 
     internal class TokenResponse

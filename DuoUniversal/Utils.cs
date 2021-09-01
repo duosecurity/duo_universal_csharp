@@ -6,7 +6,6 @@ using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace DuoUniversal
 {
-
     internal class Utils
     {
         /// <summary>
@@ -16,7 +15,10 @@ namespace DuoUniversal
         /// <returns>A random string of the specified length</returns>
         internal static string GenerateRandomString(int length)
         {
-            // TODO validate length is positive
+            if (length <= 0) {
+                throw new DuoException("Cannot generate random strings shorter than 1 character.");
+            }
+
             using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
             {
                 StringBuilder sb = new StringBuilder();

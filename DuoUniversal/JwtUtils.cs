@@ -53,11 +53,7 @@ namespace DuoUniversal
         /// <param name="expectedIssuer">The expected issuer claim</param>
         internal static void ValidateJwt(string jwt, string expectedAudience, string secret, string expectedIssuer)
         {
-            if (string.IsNullOrWhiteSpace(secret) || secret.Length < 16)
-            {
-                throw new DuoException("Secret for validation is too short");  // TODO wording, also duplicated in ValiateArguments
-            }
-
+            ValidateSecret(secret);
             JsonWebTokenHandler jwtHandler = new JsonWebTokenHandler();
 
             if (!jwtHandler.CanReadToken(jwt))
@@ -71,6 +67,18 @@ namespace DuoUniversal
             if (!result.IsValid)
             {
                 throw new DuoException("JWT validation failed", result.Exception);
+            }
+        }
+
+        /// <summary>
+        /// Validate the provided client secret.  Secrets must be at least 16 characters to be a valid secret for HMAC SHA 512
+        /// </summary>
+        /// <param name="secret">The secret to check</param>
+        private static void ValidateSecret(string secret)
+        {
+            if (string.IsNullOrWhiteSpace(secret) || secret.Length < 16)
+            {
+                throw new DuoException("Secret for validation is too short.  It must be at least 16 characters.");
             }
         }
 
@@ -107,19 +115,16 @@ namespace DuoUniversal
         /// <param name="audience">OIDC Audience</param>
         private static void ValidateArguments(string clientId, string clientSecret, string audience)
         {
+            ValidateSecret(clientSecret);
+
             if (string.IsNullOrWhiteSpace(clientId))
             {
-                throw new ArgumentException("clientId argument cannot be empty.");
-            }
-
-            if (string.IsNullOrWhiteSpace(clientSecret))  // TODO There is a minimum length, need to figure out what it is and enforce it
-            {
-                throw new ArgumentException("clientSecret argument cannot be empty.");
+                throw new DuoException("clientId argument cannot be empty.");
             }
 
             if (string.IsNullOrWhiteSpace(audience))
             {
-                throw new ArgumentException("audience argument cannont be empty.");
+                throw new DuoException("audience argument cannont be empty.");
             }
 
         }
@@ -147,17 +152,17 @@ namespace DuoUniversal
         /// <returns>An IDictionary containing the provided parameters keyed by the offical JWT claims identifiers</returns>
         private static IDictionary<string, string> GenerateParams(string clientId, string audience, IDictionary<string, string> additionalClaims)
         {
-            string jti = Guid.NewGuid().ToString(); // TODO just generate a random string instead
+            string jti = Utils.GenerateRandomString(36);
 
             var claims = new Dictionary<string, string>() {
-                {JwtRegisteredClaimNames.Iss, clientId},
-                {JwtRegisteredClaimNames.Aud, audience},
-                {JwtRegisteredClaimNames.Jti, jti}
+                {Labels.ISS, clientId},
+                {Labels.AUD, audience},
+                {Labels.JTI, jti}
             };
 
+            // Caller can provide additional claims, or overwrite the default ones, if necessary
             foreach (KeyValuePair<string, string> claim in additionalClaims)
             {
-                // TODO any value in checking for collision?
                 claims.Add(claim.Key, claim.Value);
             }
 

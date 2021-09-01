@@ -39,7 +39,7 @@ namespace DuoUniversal.Tests
         [TestCase("     ")]
         public void TestCreateSignedJwtBadSecret(string secret)
         {
-            Assert.Throws<ArgumentException>(() => JwtUtils.CreateSignedJwt(CLIENT_ID, secret, API_HOST, EMPTY_CLAIMS));
+            Assert.Throws<DuoException>(() => JwtUtils.CreateSignedJwt(CLIENT_ID, secret, API_HOST, EMPTY_CLAIMS));
         }
 
         [Test]
@@ -61,9 +61,9 @@ namespace DuoUniversal.Tests
         [Test]
         public void TestCreateAdditionalClaims()
         {
-            var additionalClaims = new Dictionary<string, string>  // TODO de-magic-string these
+            var additionalClaims = new Dictionary<string, string>
             {
-                {"sub", CLIENT_ID},
+                {Labels.SUB, CLIENT_ID},
                 {"abc", "xyz"}
             };
             string signedJwt = JwtUtils.CreateSignedJwt(CLIENT_ID, CLIENT_SECRET, API_HOST, additionalClaims);
@@ -192,7 +192,6 @@ namespace DuoUniversal.Tests
         }
 
 
-        // TODO move these to a common location fo re-use
         // ----- Token methods that use a different JWT library for testing -----
         // Decode and validate the token, assert the parameters are what we expected
         private static void ValidateToken(string jwt, string secret, string expectedClientId, string expectedAudience, IDictionary<string, string> expectedClaims)
@@ -203,12 +202,12 @@ namespace DuoUniversal.Tests
                                                                .WithSecret(secret)
                                                                .MustVerifySignature()
                                                                .Decode<IDictionary<string, string>>(jwt);
-            Assert.AreEqual(expectedClientId, parameters["iss"]);  // TODO de-magic-string these
-            Assert.AreEqual(expectedAudience, parameters["aud"]);
-            Assert.IsNotEmpty(parameters["jti"]);
-            Assert.IsNotEmpty(parameters["iat"]);
-            Assert.IsNotEmpty(parameters["nbf"]);
-            Assert.IsNotEmpty(parameters["exp"]);
+            Assert.AreEqual(expectedClientId, parameters[Labels.ISS]);
+            Assert.AreEqual(expectedAudience, parameters[Labels.AUD]);
+            Assert.IsNotEmpty(parameters[Labels.JTI]);
+            Assert.IsNotEmpty(parameters[Labels.IAT]);
+            Assert.IsNotEmpty(parameters[Labels.NBF]);
+            Assert.IsNotEmpty(parameters[Labels.EXP]);
 
             foreach (KeyValuePair<string, string> claim in expectedClaims)
             {
@@ -237,16 +236,16 @@ namespace DuoUniversal.Tests
 
         private static string CreateJwt(long iat, long exp, IJwtAlgorithm algorithm)
         {
-            return JwtBuilder.Create() // TODO de-magic-string
+            return JwtBuilder.Create()
                              .WithAlgorithm(algorithm)
                              .WithSecret(CLIENT_SECRET)
-                             .AddClaim("iss", API_HOST)
-                             .AddClaim("sub", "subject")
-                             .AddClaim("aud", CLIENT_ID)
-                             .AddClaim("iat", iat)
-                             .AddClaim("nbf", iat)
-                             .AddClaim("exp", exp)
-                             .AddClaim("preferred_username", "username")
+                             .AddClaim(Labels.ISS, API_HOST)
+                             .AddClaim(Labels.SUB, "subject")
+                             .AddClaim(Labels.AUD, CLIENT_ID)
+                             .AddClaim(Labels.IAT, iat)
+                             .AddClaim(Labels.NBF, iat)
+                             .AddClaim(Labels.EXP, exp)
+                             .AddClaim(Labels.PREFERRED_USERNAME, USERNAME)
                              .Encode();
         }
     }

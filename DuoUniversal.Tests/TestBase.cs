@@ -118,6 +118,10 @@ namespace DuoUniversal.Tests
     {
         // The URI on the client application that will serve the redirect from Duo after 2FA
         protected const string REDIRECT_URI = "https://fake.com/fake";
+        protected static Client MakeClient(HttpMessageHandler handler)
+        {
+            return new Client(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI, handler);
+        }
     }
 
     internal class HttpExcepter : HttpMessageHandler
@@ -128,7 +132,7 @@ namespace DuoUniversal.Tests
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            throw new HttpRequestException("TODO");  // TODO any need to customize the message?  or exception type?
+            throw new HttpRequestException("Test Exception");
         }
     }
 

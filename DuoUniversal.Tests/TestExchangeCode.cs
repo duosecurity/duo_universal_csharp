@@ -18,12 +18,6 @@ namespace DuoUniversal.Tests
         {
         }
 
-        private static Client MakeClient(HttpMessageHandler handler)
-        {
-            // TODO move to base class cause same as TestHealthCheck
-            return new Client(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI, handler);
-        }
-
         [Test]
         public async Task TestSuccess()
         {
