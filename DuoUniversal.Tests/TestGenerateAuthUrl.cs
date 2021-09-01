@@ -6,7 +6,6 @@ namespace DuoUniversal.Tests
     [TestFixture]
     public class TestGenerateAuthUrl : ClientTestBase
     {
-        private const string USERNAME = "username";
         private readonly string STATE = new('a', Client.DEFAULT_STATE_LENGTH);
 
         private Client client;

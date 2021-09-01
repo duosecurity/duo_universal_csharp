@@ -11,9 +11,7 @@ namespace DuoUniversal.Tests
     [TestFixture]
     public class TestExchangeCode : ClientTestBase
     {
-
         private const string CODE = "code";
-        private const string USERNAME = "username";
 
         [SetUp]
         public void Setup()
@@ -72,7 +70,7 @@ namespace DuoUniversal.Tests
             {
                 {"access_token", "access token"},
                 {"expires_in", "1"},
-                {"id_token", TestUtils.CreateJwtString()},  // TODO probably move the CreateJwtString() method
+                {"id_token", CreateTokenJwt()},
                 {"token_type", "Bearer"}
             };
             return JsonSerializer.Serialize(responseValues);

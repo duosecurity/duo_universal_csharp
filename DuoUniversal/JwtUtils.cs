@@ -43,10 +43,60 @@ namespace DuoUniversal
             return SignPayload(payload, clientSecret);
         }
 
-        internal static void ValidateJwt(string jwt, string subject, string secret, string issuer)
+        /// <summary>
+        /// Validate the provided JWT against the expected audience and issuer, and that the signature is HMAC512 with the correct secret.
+        /// Throws a DuoException if any aspect of validation fails, the JWT is malformed, or if the secret is unusable
+        /// </summary>
+        /// <param name="jwt">The JWT to validate</param>
+        /// <param name="expectedAudience">The expected audience claim</param>
+        /// <param name="secret">The shared secret that should have been used to sign the JWT</param>
+        /// <param name="expectedIssuer">The expected issuer claim</param>
+        internal static void ValidateJwt(string jwt, string expectedAudience, string secret, string expectedIssuer)
         {
-            // TODO T129712 write this
-            // TODO and tests
+            if (string.IsNullOrWhiteSpace(secret) || secret.Length < 16)
+            {
+                throw new DuoException("Secret for validation is too short");  // TODO wording, also duplicated in ValiateArguments
+            }
+
+            JsonWebTokenHandler jwtHandler = new JsonWebTokenHandler();
+
+            if (!jwtHandler.CanReadToken(jwt))
+            {
+                throw new DuoException("The Id Token appears to be malformed");
+            }
+
+            TokenValidationParameters validationParameters = GetValidationParameters(secret, expectedAudience, expectedIssuer);
+            TokenValidationResult result = jwtHandler.ValidateToken(jwt, validationParameters);
+
+            if (!result.IsValid)
+            {
+                throw new DuoException("JWT validation failed", result.Exception);
+            }
+        }
+
+        /// <summary>
+        /// Construct the TokenValidationParameters for validating a JWT
+        /// </summary>
+        /// <param name="secret">The secret that should have been used to sign the JWT</param>
+        /// <param name="audience">The expected audience claim</param>
+        /// <param name="issuer">The expected issuer claim</param>
+        /// <returns>A TokenValidationParameters for validating a JWT</returns>
+        private static TokenValidationParameters GetValidationParameters(string secret, string audience, string issuer)
+        {
+            // Many validations are done by default:
+            //   Signing is required by default
+            //   Issuer is validated by default
+            //   Audience is validated by default
+            //   Expiration is required by default
+            //   Lifetime (iat / nbf / exp) is validated by default, with a default 5 minute clock skew
+            // We additionally enforce that HMACSHA512 was used
+            return new TokenValidationParameters
+            {
+                ValidAlgorithms = new string[] { SecurityAlgorithms.HmacSha512 },
+                ValidAudience = audience,
+                ValidIssuer = issuer,
+                IssuerSigningKey = GenerateSecurityKey(secret),
+            };
         }
 
         /// <summary>
@@ -151,9 +201,19 @@ namespace DuoUniversal
         /// <returns>A SigningCredentials to be used by the JWT token creator</returns>
         private static SigningCredentials GenerateSigningCreds(string secret)
         {
-            byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
-            SecurityKey signingKey = new SymmetricSecurityKey(keyBytes);
+            SecurityKey signingKey = GenerateSecurityKey(secret);
             return new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha512);
+        }
+
+        /// <summary>
+        /// Generate a SecurityKey for the given shared secret 
+        /// </summary>
+        /// <param name="secret">The shared secret</param>
+        /// <returns>A SecurityKey encoding thae share secret</returns>
+        private static SecurityKey GenerateSecurityKey(string secret)
+        {
+            byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
+            return new SymmetricSecurityKey(keyBytes);
         }
     }
 }
