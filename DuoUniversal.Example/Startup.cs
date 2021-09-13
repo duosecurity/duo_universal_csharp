@@ -25,6 +25,16 @@ namespace DuoUniversal.Example
         {
             var duoClientProvider = new DuoClientProvider(Configuration);
             services.AddSingleton<IDuoClientProvider>(duoClientProvider);
+
+            services.AddDistributedMemoryCache();
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(60);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+
+            }
+            );
             services.AddRazorPages();
         }
 
@@ -40,6 +50,8 @@ namespace DuoUniversal.Example
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseSession();
 
             app.UseEndpoints(endpoints =>
             {

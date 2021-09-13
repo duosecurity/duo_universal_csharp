@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
@@ -29,10 +30,19 @@ namespace DuoUniversal.Example.Pages
         {
             Client duoClient = _duoClientProvider.GetDuoClient();
 
-            // TODO need to match the states, will need session-like store
-            // TODO need the username, probably from the session
+            var sessionState = HttpContext.Session.GetString("_State");
+            var sessionUsername = HttpContext.Session.GetString("_Username");
+            if (string.IsNullOrEmpty(sessionState) || string.IsNullOrEmpty(sessionUsername))
+            {
+                // TODO error
+            }
 
-            IdToken token = await duoClient.ExchangeAuthorizationCodeFor2faResult(code, "username"); // TODO hack for now
+            if (!sessionState.Equals(state))
+            {
+                // TODO error
+            }
+
+            IdToken token = await duoClient.ExchangeAuthorizationCodeFor2faResult(code, sessionUsername);
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true

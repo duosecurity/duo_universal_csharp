@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
@@ -33,6 +34,10 @@ namespace DuoUniversal.Example.Pages
             await duoClient.DoHealthCheck();  // TODO handle exception?
 
             string state = Client.GenerateState();
+            // TODO de-magic string these
+            HttpContext.Session.SetString("_State", state);
+            HttpContext.Session.SetString("_Username", username);
+
             string promptUri = duoClient.GenerateAuthUri(username, state); // TODO handle exception?
 
             return new RedirectResult(promptUri);
