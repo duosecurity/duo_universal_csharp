@@ -30,7 +30,7 @@ namespace DuoUniversal.Tests
         [TestCase("     ")]
         public void TestCreateSignedJwtBadClientId(string clientId)
         {
-            Assert.Throws<ArgumentException>(() => JwtUtils.CreateSignedJwt(clientId, CLIENT_SECRET, API_HOST, EMPTY_CLAIMS));
+            Assert.Throws<DuoException>(() => JwtUtils.CreateSignedJwt(clientId, CLIENT_SECRET, API_HOST, EMPTY_CLAIMS));
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace DuoUniversal.Tests
         [TestCase("     ")]
         public void TestCreateSignedJwtBadAudience(string audience)
         {
-            Assert.Throws<ArgumentException>(() => JwtUtils.CreateSignedJwt(CLIENT_ID, CLIENT_SECRET, audience, EMPTY_CLAIMS));
+            Assert.Throws<DuoException>(() => JwtUtils.CreateSignedJwt(CLIENT_ID, CLIENT_SECRET, audience, EMPTY_CLAIMS));
         }
 
         [Test]

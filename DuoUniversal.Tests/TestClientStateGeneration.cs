@@ -19,7 +19,7 @@ namespace DuoUniversal.Tests
         [TestCase(1000000000)]
         public void TestInvalidLength(int length)
         {
-            Assert.Throws<ArgumentException>(() => Client.GenerateState(length));
+            Assert.Throws<DuoException>(() => Client.GenerateState(length));
         }
 
         [Test]
