@@ -163,7 +163,7 @@ namespace DuoUniversal
             // Caller can provide additional claims, or overwrite the default ones, if necessary
             foreach (KeyValuePair<string, string> claim in additionalClaims)
             {
-                claims.Add(claim.Key, claim.Value);
+                claims[claim.Key] = claim.Value;
             }
 
             return claims;
