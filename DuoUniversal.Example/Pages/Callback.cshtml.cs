@@ -17,13 +17,15 @@ namespace DuoUniversal.Example.Pages
 
         private readonly IDuoClientProvider _duoClientProvider;
 
+        public string AuthResponse { get; set; }
+
         public CallbackModel(ILogger<IndexModel> logger, IDuoClientProvider duoClientProvider)
         {
             _logger = logger;
             _duoClientProvider = duoClientProvider;
         }
 
-        public async void OnGet(string state, string code)
+        public async Task<IActionResult> OnGet(string state, string code)
         {
             Client duoClient = _duoClientProvider.GetDuoClient();
 
@@ -31,8 +33,12 @@ namespace DuoUniversal.Example.Pages
             // TODO need the username, probably from the session
 
             IdToken token = await duoClient.ExchangeAuthorizationCodeFor2faResult(code, "username"); // TODO hack for now
-            string tokenJson = JsonSerializer.Serialize(token);
-            _logger.LogInformation(tokenJson);
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+            AuthResponse = JsonSerializer.Serialize(token, options);
+            return Page();
         }
     }
 }
