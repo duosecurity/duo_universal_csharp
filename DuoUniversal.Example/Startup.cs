@@ -23,7 +23,8 @@ namespace DuoUniversal.Example
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(Configuration);
+            var duoClientProvider = new DuoClientProvider(Configuration);
+            services.AddSingleton<IDuoClientProvider>(duoClientProvider);
             services.AddRazorPages();
         }
 
@@ -44,6 +45,34 @@ namespace DuoUniversal.Example
             {
                 endpoints.MapRazorPages();
             });
+        }
+    }
+
+
+    public interface IDuoClientProvider
+    {
+        public Client GetDuoClient();
+    }
+
+    internal class DuoClientProvider : IDuoClientProvider
+    {
+        private string ClientId { get; }
+        private string ClientSecret { get; }
+        private string ApiHost { get; }
+        private string RedirectUri { get; }
+
+        public DuoClientProvider(IConfiguration config)
+        {
+            // TODO Handle missing values
+            ClientId = config.GetValue<string>("Client ID");
+            ClientSecret = config.GetValue<string>("Client Secret");
+            ApiHost = config.GetValue<string>("API Host");
+            RedirectUri = config.GetValue<string>("Redirect URI");
+        }
+
+        public Client GetDuoClient()
+        {
+            return new Client(ClientId, ClientSecret, ApiHost, RedirectUri);
         }
     }
 }

@@ -15,21 +15,17 @@ namespace DuoUniversal.Example.Pages
     {
         private readonly ILogger<IndexModel> _logger;
 
-        private readonly IConfiguration _configuration;  // TODO overkill to get the whole config, just encapsulate the Duo config?
+        private readonly IDuoClientProvider _duoClientProvider;
 
-        public CallbackModel(ILogger<IndexModel> logger, IConfiguration configuration)
+        public CallbackModel(ILogger<IndexModel> logger, IDuoClientProvider duoClientProvider)
         {
             _logger = logger;
-            _configuration = configuration;
+            _duoClientProvider = duoClientProvider;
         }
 
         public async void OnGet(string state, string code)
         {
-            string clientId = _configuration.GetValue<string>("Client ID"); // TODO duplicated
-            string clientSecret = _configuration.GetValue<string>("Client Secret");
-            string apiHost = _configuration.GetValue<string>("API Host");
-            string redirectUri = _configuration.GetValue<string>("Redirect URI");
-            Client duoClient = new Client(clientId, clientSecret, apiHost, redirectUri);
+            Client duoClient = _duoClientProvider.GetDuoClient();
 
             // TODO need to match the states, will need session-like store
             // TODO need the username, probably from the session
