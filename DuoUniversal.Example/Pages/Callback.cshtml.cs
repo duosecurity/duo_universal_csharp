@@ -30,17 +30,19 @@ namespace DuoUniversal.Example.Pages
         {
             Client duoClient = _duoClientProvider.GetDuoClient();
 
-            var sessionState = HttpContext.Session.GetString("_State");
-            var sessionUsername = HttpContext.Session.GetString("_Username");
+            var sessionState = HttpContext.Session.GetString(IndexModel.STATE_SESSION_KEY);
+            var sessionUsername = HttpContext.Session.GetString(IndexModel.USERNAME_SESSION_KEY);
             if (string.IsNullOrEmpty(sessionState) || string.IsNullOrEmpty(sessionUsername))
             {
-                // TODO error
+                throw new DuoException("State or username were missing from your session");
             }
 
             if (!sessionState.Equals(state))
             {
-                // TODO error
+                throw new DuoException("Session state did not match the expected state");
             }
+
+            HttpContext.Session.Clear();
 
             IdToken token = await duoClient.ExchangeAuthorizationCodeFor2faResult(code, sessionUsername);
             var options = new JsonSerializerOptions

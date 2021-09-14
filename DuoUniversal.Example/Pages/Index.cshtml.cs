@@ -12,6 +12,10 @@ namespace DuoUniversal.Example.Pages
 {
     public class IndexModel : PageModel
     {
+
+        internal const string STATE_SESSION_KEY = "_State";
+        internal const string USERNAME_SESSION_KEY = "_Username";
+
         private readonly ILogger<IndexModel> _logger;
 
         private readonly IDuoClientProvider _duoClientProvider;
@@ -31,14 +35,13 @@ namespace DuoUniversal.Example.Pages
         {
             Client duoClient = _duoClientProvider.GetDuoClient();
 
-            await duoClient.DoHealthCheck();  // TODO handle exception?
+            await duoClient.DoHealthCheck();
 
             string state = Client.GenerateState();
-            // TODO de-magic string these
-            HttpContext.Session.SetString("_State", state);
-            HttpContext.Session.SetString("_Username", username);
+            HttpContext.Session.SetString(STATE_SESSION_KEY, state);
+            HttpContext.Session.SetString(USERNAME_SESSION_KEY, username);
 
-            string promptUri = duoClient.GenerateAuthUri(username, state); // TODO handle exception?
+            string promptUri = duoClient.GenerateAuthUri(username, state);
 
             return new RedirectResult(promptUri);
         }

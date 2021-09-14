@@ -75,7 +75,6 @@ namespace DuoUniversal.Example
 
         public DuoClientProvider(IConfiguration config)
         {
-            // TODO Handle missing values
             ClientId = config.GetValue<string>("Client ID");
             ClientSecret = config.GetValue<string>("Client Secret");
             ApiHost = config.GetValue<string>("API Host");
@@ -84,6 +83,23 @@ namespace DuoUniversal.Example
 
         public Client GetDuoClient()
         {
+            if (string.IsNullOrWhiteSpace(ClientId))
+            {
+                throw new DuoException("A 'Client ID' configuration value is required in the appsettings file.");
+            }
+            if (string.IsNullOrWhiteSpace(ClientSecret))
+            {
+                throw new DuoException("A 'Client Secret' configuration value is required in the appsettings file.");
+            }
+            if (string.IsNullOrWhiteSpace(ApiHost))
+            {
+                throw new DuoException("An 'Api Host' configuration value is required in the appsettings file.");
+            }
+            if (string.IsNullOrWhiteSpace(RedirectUri))
+            {
+                throw new DuoException("A 'Redirect URI' configuration value is required in the appsettings file.");
+            }
+
             return new Client(ClientId, ClientSecret, ApiHost, RedirectUri);
         }
     }
