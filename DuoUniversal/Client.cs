@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace DuoUniversal
 {
     public class Client
     {
+        private const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
+
         internal const int MINIMUM_STATE_LENGTH = 22;
         internal const int DEFAULT_STATE_LENGTH = 36;
         internal const int MAXIMUM_STATE_LENGTH = 1024;
@@ -33,6 +37,7 @@ namespace DuoUniversal
             this.ApiHost = apiHost;
             this.RedirectUri = redirectUri;
             httpClient = new HttpClient(httpMessageHandler);
+            AddUserAgent(httpClient);
         }
 
         /// <summary>
@@ -130,6 +135,19 @@ namespace DuoUniversal
             }
 
             return idToken;
+        }
+
+        private static void AddUserAgent(HttpClient httpClient)
+        {
+            // Product name and version
+            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            ProductInfoHeaderValue ua = new ProductInfoHeaderValue(DUO_UNIVERSAL_CSHARP, version);
+            httpClient.DefaultRequestHeaders.UserAgent.Add(ua);
+
+            // Additional info
+            var os = Environment.OSVersion.ToString();
+            ProductInfoHeaderValue stuff = new ProductInfoHeaderValue($"({os})");
+            httpClient.DefaultRequestHeaders.UserAgent.Add(stuff);
         }
 
         /// <summary>
