@@ -12,7 +12,7 @@ namespace DuoUniversal.Tests
         [SetUp]
         public void Setup()
         {
-            client = new Client(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI);
+            client = new ClientBuilder(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI).Build();
         }
 
         [Test]

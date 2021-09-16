@@ -100,7 +100,7 @@ namespace DuoUniversal.Example
                 throw new DuoException("A 'Redirect URI' configuration value is required in the appsettings file.");
             }
 
-            return new Client(ClientId, ClientSecret, ApiHost, RedirectUri);
+            return new ClientBuilder(ClientId, ClientSecret, ApiHost, RedirectUri).Build();
         }
     }
 }

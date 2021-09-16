@@ -120,7 +120,7 @@ namespace DuoUniversal.Tests
         protected const string REDIRECT_URI = "https://fake.com/fake";
         protected static Client MakeClient(HttpMessageHandler handler)
         {
-            return new Client(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI, handler);
+            return new ClientBuilder(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI).CustomHandler(handler).Build();
         }
     }
 

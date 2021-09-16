@@ -15,7 +15,8 @@ namespace DuoUniversal
         /// <returns>A random string of the specified length</returns>
         internal static string GenerateRandomString(int length)
         {
-            if (length <= 0) {
+            if (length <= 0)
+            {
                 throw new DuoException("Cannot generate random strings shorter than 1 character.");
             }
 
@@ -87,6 +88,11 @@ namespace DuoUniversal
             {
                 throw new DuoException("Error while parsing the auth token response", e);
             }
+        }
+
+        internal static void ValidateRequiredParameters(string clientId, string clientSecret, string apiHost, string redirectUri)
+        {
+            // TODO
         }
     }
 }

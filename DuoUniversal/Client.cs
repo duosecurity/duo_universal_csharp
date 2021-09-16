@@ -11,7 +11,7 @@ namespace DuoUniversal
 {
     public class Client
     {
-        private const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
+        public const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
 
         internal const int MINIMUM_STATE_LENGTH = 22;
         internal const int DEFAULT_STATE_LENGTH = 36;
@@ -20,24 +20,15 @@ namespace DuoUniversal
         private const string HEALTH_CHECK_ENDPOINT = "https://{0}/oauth/v1/health_check";
         private const string AUTH_ENDPOINT = "https://{0}/oauth/v1/authorize";
         private const string TOKEN_ENDPOINT = "https://{0}/oauth/v1/token";
-        private string ClientId { get; }
-        private string ClientSecret { get; }
-        private string ApiHost { get; }
-        private string RedirectUri { get; }
-        private readonly HttpClient httpClient;
 
-        public Client(string clientId, string clientSecret, string apiHost, string redirectUri) : this(clientId, clientSecret, apiHost, redirectUri, new HttpClientHandler())
-        {
-        }
+        internal string ClientId { get; set; }
+        internal string ClientSecret { get; set; }
+        internal string ApiHost { get; set; }
+        internal string RedirectUri { get; set; }
+        internal HttpClient HttpClient { get; set; }
 
-        public Client(string clientId, string clientSecret, string apiHost, string redirectUri, HttpMessageHandler httpMessageHandler) // TODO replace with Builder pattern later
+        internal Client()
         {
-            this.ClientId = clientId; // TODO validations on these
-            this.ClientSecret = clientSecret;
-            this.ApiHost = apiHost;
-            this.RedirectUri = redirectUri;
-            httpClient = new HttpClient(httpMessageHandler);
-            AddUserAgent(httpClient);
         }
 
         /// <summary>
@@ -137,18 +128,6 @@ namespace DuoUniversal
             return idToken;
         }
 
-        private static void AddUserAgent(HttpClient httpClient)
-        {
-            // Product name and version
-            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            ProductInfoHeaderValue ua = new ProductInfoHeaderValue(DUO_UNIVERSAL_CSHARP, version);
-            httpClient.DefaultRequestHeaders.UserAgent.Add(ua);
-
-            // Additional info
-            var os = Environment.OSVersion.ToString();
-            ProductInfoHeaderValue stuff = new ProductInfoHeaderValue($"({os})");
-            httpClient.DefaultRequestHeaders.UserAgent.Add(stuff);
-        }
 
         /// <summary>
         /// Customize a URI template based on the Duo API Host value
@@ -206,6 +185,11 @@ namespace DuoUniversal
             return JwtUtils.CreateSignedJwt(ClientId, ClientSecret, authEndpoint, additionalClaims);
         }
 
+        /// <summary>
+        /// TODO Document
+        /// </summary>
+        /// <param name="audience"></param>
+        /// <returns></returns>
         private string GenerateSubjectJwt(string audience)
         {
             // Add the subject claim
@@ -245,7 +229,7 @@ namespace DuoUniversal
         private async Task<T> DoPost<T>(string url, IDictionary<string, string> parameters)
         {
             HttpContent content = new FormUrlEncodedContent(parameters);
-            HttpResponseMessage httpResponse = await httpClient.PostAsync(url, content);
+            HttpResponseMessage httpResponse = await HttpClient.PostAsync(url, content);
 
             // This will throw an HttpRequestException if the result code is not in the 200s
             httpResponse.EnsureSuccessStatusCode();
@@ -254,11 +238,20 @@ namespace DuoUniversal
         }
 
 
+        /// <summary>
+        /// TODO document 
+        /// </summary>
+        /// <returns></returns>
         public static string GenerateState()
         {
             return GenerateState(DEFAULT_STATE_LENGTH);
         }
 
+        /// <summary>
+        ///  TODO document
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
         public static string GenerateState(int length)
         {
             if (length > MAXIMUM_STATE_LENGTH || length < MINIMUM_STATE_LENGTH)
@@ -267,6 +260,74 @@ namespace DuoUniversal
             }
 
             return Utils.GenerateRandomString(length);
+        }
+    }
+
+    public class ClientBuilder
+    {
+
+        // Required parameters
+        private readonly string _clientId;
+        private readonly string _clientSecret;
+        private readonly string _apiHost;
+        private readonly string _redirectUri;
+
+
+        // For testing
+        private HttpMessageHandler _httpMessageHandler;
+
+        public ClientBuilder(string clientId, string clientSecret, string apiHost, string redirectUri)
+        {
+            // TODO validations
+            _clientId = clientId;
+            _clientSecret = clientSecret;
+            _apiHost = apiHost;
+            _redirectUri = redirectUri;
+        }
+
+        internal ClientBuilder CustomHandler(HttpMessageHandler httpMessageHandler)
+        {
+            _httpMessageHandler = httpMessageHandler;
+
+            return this;
+        }
+
+        public Client Build()
+        {
+            Utils.ValidateRequiredParameters(_clientId, _clientSecret, _apiHost, _redirectUri);
+
+            Client duoClient = new Client
+            {
+                ClientId = _clientId,
+                ClientSecret = _clientSecret,
+                ApiHost = _apiHost,
+                RedirectUri = _redirectUri
+            };
+
+            HttpMessageHandler httpMessageHandler = _httpMessageHandler ?? new HttpClientHandler();
+            HttpClient httpClient = new HttpClient(httpMessageHandler);
+            AddUserAgent(httpClient);
+
+            duoClient.HttpClient = httpClient;
+
+            return duoClient;
+        }
+
+        /// <summary>
+        /// TODO Document
+        /// </summary>
+        /// <param name="httpClient"></param>
+        private static void AddUserAgent(HttpClient httpClient)
+        {
+            // Product name and version
+            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            ProductInfoHeaderValue ua = new ProductInfoHeaderValue(Client.DUO_UNIVERSAL_CSHARP, version);
+            httpClient.DefaultRequestHeaders.UserAgent.Add(ua);
+
+            // Additional info
+            var os = Environment.OSVersion.ToString();
+            ProductInfoHeaderValue stuff = new ProductInfoHeaderValue($"({os})");
+            httpClient.DefaultRequestHeaders.UserAgent.Add(stuff);
         }
     }
 }
