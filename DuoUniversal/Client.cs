@@ -27,6 +27,8 @@ namespace DuoUniversal
         internal string RedirectUri { get; set; }
         internal HttpClient HttpClient { get; set; }
 
+        internal bool UseDuoCodeAttribute { get; set; } = false;
+
         internal Client()
         {
         }
@@ -179,8 +181,12 @@ namespace DuoUniversal
                 {Labels.SCOPE, Labels.OPENID},
                 {Labels.STATE, state}
                 // TODO support nonce
-                // TODO support overriding use_duo_code_attribute
             };  // TODO would it hurt to send the subject claim?  if not, I could get rid of GenerateSubjectJwt...
+
+            if (UseDuoCodeAttribute)
+            {
+                additionalClaims[Labels.USE_DUO_CODE_ATTRIBUTE] = "true";
+            }
 
             return JwtUtils.CreateSignedJwt(ClientId, ClientSecret, authEndpoint, additionalClaims);
         }
@@ -272,6 +278,8 @@ namespace DuoUniversal
         private readonly string _apiHost;
         private readonly string _redirectUri;
 
+        private bool _useDuoCodeAttribute = false;
+
 
         // For testing
         private HttpMessageHandler _httpMessageHandler;
@@ -292,6 +300,13 @@ namespace DuoUniversal
             return this;
         }
 
+        public ClientBuilder UseDuoCodeAttribute()
+        {
+            _useDuoCodeAttribute = true;
+
+            return this;
+        }
+
         public Client Build()
         {
             Utils.ValidateRequiredParameters(_clientId, _clientSecret, _apiHost, _redirectUri);
@@ -301,7 +316,8 @@ namespace DuoUniversal
                 ClientId = _clientId,
                 ClientSecret = _clientSecret,
                 ApiHost = _apiHost,
-                RedirectUri = _redirectUri
+                RedirectUri = _redirectUri,
+                UseDuoCodeAttribute = _useDuoCodeAttribute
             };
 
             HttpMessageHandler httpMessageHandler = _httpMessageHandler ?? new HttpClientHandler();

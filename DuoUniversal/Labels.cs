@@ -35,6 +35,6 @@ namespace DuoUniversal
         // Labels for custom Duo claims
         public const string DUO_UNAME = "duo_uname";
         public const string PREFERRED_USERNAME = "preferred_username";
-
+        public const string USE_DUO_CODE_ATTRIBUTE = "use_duo_code_attribute";
     }
 }

@@ -28,6 +28,8 @@ namespace DuoUniversal.Example.Pages
 
         public async Task<IActionResult> OnGet(string state, string code)
         {
+            // TODO validate that state and code exist
+
             Client duoClient = _duoClientProvider.GetDuoClient();
 
             var sessionState = HttpContext.Session.GetString(IndexModel.STATE_SESSION_KEY);
