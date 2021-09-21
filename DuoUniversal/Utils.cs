@@ -61,16 +61,18 @@ namespace DuoUniversal
             {
                 JsonWebToken token = new JsonWebToken(jwt);
 
-                string authContextJson = token.GetClaim("auth_context").Value;
+                string authContextJson = token.GetClaim(Labels.AUTH_CONTEXT).Value;
                 AuthContext authContext = JsonSerializer.Deserialize<AuthContext>(authContextJson);
 
-                string authResultJson = token.GetClaim("auth_result").Value;
+                string authResultJson = token.GetClaim(Labels.AUTH_RESULT).Value;
                 AuthResult authResult = JsonSerializer.Deserialize<AuthResult>(authResultJson);
 
-                int authTime = int.Parse(token.GetClaim("auth_time").Value);
-                string username = token.GetClaim("preferred_username").Value;
+                int authTime = int.Parse(token.GetClaim(Labels.AUTH_TIME).Value);
+                string username = token.GetClaim(Labels.PREFERRED_USERNAME).Value;
+                // Realistically there will only ever be one Audience value
+                var audiences = string.Join(",", token.Audiences);
 
-                return new IdToken // TODO is there a way to get the payload in JSON and deserialize directly to IdToken?
+                return new IdToken
                 {
                     AuthContext = authContext,
                     AuthResult = authResult,
@@ -80,7 +82,7 @@ namespace DuoUniversal
                     Exp = token.ValidTo,
                     Iat = token.IssuedAt,
                     Sub = token.Subject,
-                    // TODO aud - is a 'list'?
+                    Aud = audiences
                     // TODO Nonce
                 };
             }

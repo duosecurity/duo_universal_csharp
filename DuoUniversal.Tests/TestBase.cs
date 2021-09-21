@@ -43,7 +43,7 @@ namespace DuoUniversal.Tests
                         browser = BROWSER,
                         browser_version = "1.2.3.4",
                         flash_version = "4.3.2.1",
-                        hostname = "",  // TODO what type is this?
+                        hostname = "hostname",
                         ip = "100.200.100.200",
                         is_encryption_enabled = "unknown",
                         is_firewall_enabled = "unknown",
@@ -80,7 +80,7 @@ namespace DuoUniversal.Tests
                     event_type = "authentication",
                     factor = "duo_push",
                     isotimestamp = "2021-08-30T18:00:00.00000+00:00",
-                    ood_software = "TODO", // TODO what type is this?
+                    ood_software = "Windows 3.1",
                     reason = "user_approved",
                     result = "success",
                     timestamp = 1234,

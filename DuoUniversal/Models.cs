@@ -67,7 +67,7 @@ namespace DuoUniversal
         [JsonPropertyName("isotimestamp")]
         public string IsoTimestamp { get; set; }
         [JsonPropertyName("ood_software")]
-        public string OodSoftware { get; set; }  // TODO what type is this
+        public string OodSoftware { get; set; }
         [JsonPropertyName("reason")]
         public string Reason { get; set; }
         [JsonPropertyName("result")]
@@ -92,7 +92,7 @@ namespace DuoUniversal
         [JsonPropertyName("flash_version")]
         public string FlashVersion { get; set; }
         [JsonPropertyName("hostname")]
-        public string Hostname { get; set; } // TODO what type is this
+        public string Hostname { get; set; }
         [JsonPropertyName("ip")]
         public string IpAddress { get; set; }
         [JsonPropertyName("is_encryption_enabled")]
@@ -144,7 +144,7 @@ namespace DuoUniversal
     public class User
     {
         [JsonPropertyName("groups")]
-        public List<string> Groups { get; set; } // TODO make sure this is right
+        public List<string> Groups { get; set; }
         [JsonPropertyName("key")]
         public string Key { get; set; }
         [JsonPropertyName("name")]
