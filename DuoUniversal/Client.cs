@@ -320,13 +320,26 @@ namespace DuoUniversal
                 UseDuoCodeAttribute = _useDuoCodeAttribute
             };
 
-            HttpMessageHandler httpMessageHandler = _httpMessageHandler ?? new HttpClientHandler();
-            HttpClient httpClient = new HttpClient(httpMessageHandler);
+            var httpClient = BuildHttpClient();
             AddUserAgent(httpClient);
 
             duoClient.HttpClient = httpClient;
 
             return duoClient;
+        }
+
+        private HttpClient BuildHttpClient()
+        {
+            if (_httpMessageHandler != null)
+            {
+                return new HttpClient(_httpMessageHandler);
+            }
+
+            var handler = new HttpClientHandler
+            {
+                SslProtocols = System.Security.Authentication.SslProtocols.Tls12
+            };
+            return new HttpClient(handler);
         }
 
         /// <summary>
