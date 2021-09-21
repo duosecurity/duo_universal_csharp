@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Duo Security
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
 using System;
 using System.Collections.Generic;
 using JWT.Algorithms;
