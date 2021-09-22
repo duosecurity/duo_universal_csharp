@@ -341,7 +341,7 @@ namespace DuoUniversal
 
             var handler = new HttpClientHandler
             {
-                SslProtocols = System.Security.Authentication.SslProtocols.Tls12
+                ServerCertificateCustomValidationCallback = CertificatePinnerFactory.GetDuoCertificatePinner()
             };
             return new HttpClient(handler);
         }
