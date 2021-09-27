@@ -287,6 +287,7 @@ namespace DuoUniversal
         // Optional settings with default values
         private bool _useDuoCodeAttribute = false;
         private bool _sslCertValidation = true;
+        private X509Certificate2Collection _customRoots = null;
 
 
         // For testing only
@@ -309,12 +310,28 @@ namespace DuoUniversal
 
         ///  <summary>
         /// Disables SSL certificate validation for the API calls the client makes.
+        /// Incomptible with UseCustomRootCertificates since certificates will not be checked.
+        /// 
         /// THIS SHOULD NEVER BE USED IN A PRODUCTION ENVIRONMENT
         /// </summary>
         /// <returns>The ClientBuilder</returns>
         public ClientBuilder DisableSslCertificateValidation()
         {
             _sslCertValidation = false;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Override the set of Duo root certificates used for certificate pinning.  Provide a collection of acceptable root certificates.
+        /// 
+        /// Incomptible with DisableSslCertificateValidation - if that is enabled, certificate pinning is not done at all. 
+        /// </summary>
+        /// <param name="customRoots">The custom set of root certificates to trust</param>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder UseCustomRootCertificates(X509Certificate2Collection customRoots)
+        {
+            _customRoots = customRoots;
 
             return this;
         }
@@ -381,7 +398,7 @@ namespace DuoUniversal
         /// <summary>
         /// Get the appropriate SSL certificate pinner based on the builder settings:
         ///   If certificate validation is disabled, get a pinner that disables validations
-        ///   TODO If a custom root cert collection was provided, pin to those
+        ///   If a custom root cert collection was provided, pin to those
         ///   Otherwise, pin to the Duo certificates
         /// </summary>
         /// <returns>A certificate pinner function</returns>
@@ -390,6 +407,11 @@ namespace DuoUniversal
             if (!_sslCertValidation)
             {
                 return CertificatePinnerFactory.GetCertificateDisabler();
+            }
+
+            if (_customRoots != null)
+            {
+                return new CertificatePinnerFactory(_customRoots).GetPinner();
             }
 
             return CertificatePinnerFactory.GetDuoCertificatePinner();
