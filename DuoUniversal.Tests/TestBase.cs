@@ -17,9 +17,9 @@ namespace DuoUniversal.Tests
     {
         // A consistent set of test values
         // A Client Id, e.g. the Issuer of JWTs going to Duo and the Audience of JWTs sent by Duo
-        protected const string CLIENT_ID = "client id";
+        protected const string CLIENT_ID = "client id client id ";
         // A Client Secret, the shared secret used to sign JWTs
-        protected const string CLIENT_SECRET = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        protected const string CLIENT_SECRET = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         // A Duo API Host, the basis of endpoints URIs which are the Audience of JWTs going to Duo and the Issuer of JWTs sent dy Duo
         protected const string API_HOST = "fake.api.host";
         // The Issuer of the only JWT sent by Duo

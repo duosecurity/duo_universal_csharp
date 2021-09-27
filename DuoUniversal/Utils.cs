@@ -96,9 +96,38 @@ namespace DuoUniversal
             }
         }
 
+        /// <summary>
+        /// Validate the provided Client parameters
+        ///   Client Id must be non-empty and a specific length
+        ///   Client Secret must be non-empty and a specific length
+        ///   API Host must be non-empty
+        ///   Redirect URI must be non-empty
+        /// </summary>
+        /// <param name="clientId">The Client ID to validate</param>
+        /// <param name="clientSecret">The Client Secret to validate</param>
+        /// <param name="apiHost">The API Host to validate</param>
+        /// <param name="redirectUri">The Redirect URI to validate</param>
         internal static void ValidateRequiredParameters(string clientId, string clientSecret, string apiHost, string redirectUri)
         {
-            // TODO
+            if (string.IsNullOrWhiteSpace(clientId) || clientId.Length != Client.CLIENT_ID_LENGTH)
+            {
+                throw new DuoException($"Client ID must be a non-empty string of length {Client.CLIENT_ID_LENGTH}");
+            }
+
+            if (string.IsNullOrWhiteSpace(clientSecret) || clientSecret.Length != Client.CLIENT_SECRET_LENGTH)
+            {
+                throw new DuoException($"Client Secret must be a non-empty string of length {Client.CLIENT_SECRET_LENGTH}");
+            }
+
+            if (string.IsNullOrWhiteSpace(apiHost))
+            {
+                throw new DuoException("API Host must be a non-empty string");
+            }
+
+            if (string.IsNullOrWhiteSpace(redirectUri))
+            {
+                throw new DuoException("Redirect URI must be a non-empty string");
+            }
         }
     }
 }

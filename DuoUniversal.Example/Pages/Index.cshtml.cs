@@ -39,7 +39,7 @@ namespace DuoUniversal.Example.Pages
         {
             Client duoClient = _duoClientProvider.GetDuoClient();
 
-            await duoClient.DoHealthCheck();
+            await duoClient.DoHealthCheck(); // If Duo were unhealthy, possibly send user to an error page
 
             string state = Client.GenerateState();
             HttpContext.Session.SetString(STATE_SESSION_KEY, state);

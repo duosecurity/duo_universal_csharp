@@ -32,7 +32,14 @@ namespace DuoUniversal.Example.Pages
 
         public async Task<IActionResult> OnGet(string state, string code)
         {
-            // TODO validate that state and code exist
+            if (string.IsNullOrWhiteSpace(state))
+            {
+                throw new DuoException("Required state value was empty");
+            }
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                throw new DuoException("Required code value was empty");
+            }
 
             Client duoClient = _duoClientProvider.GetDuoClient();
 

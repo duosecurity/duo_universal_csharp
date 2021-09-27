@@ -19,6 +19,8 @@ namespace DuoUniversal
     {
         public const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
 
+        internal const int CLIENT_ID_LENGTH = 20;
+        internal const int CLIENT_SECRET_LENGTH = 40;
         internal const int MINIMUM_STATE_LENGTH = 22;
         internal const int DEFAULT_STATE_LENGTH = 36;
         internal const int MAXIMUM_STATE_LENGTH = 1024;
@@ -187,7 +189,7 @@ namespace DuoUniversal
                 {Labels.SCOPE, Labels.OPENID},
                 {Labels.STATE, state}
                 // TODO support nonce
-            };  // TODO would it hurt to send the subject claim?  if not, I could get rid of GenerateSubjectJwt...
+            };
 
             if (UseDuoCodeAttribute)
             {
@@ -198,10 +200,10 @@ namespace DuoUniversal
         }
 
         /// <summary>
-        /// TODO Document
+        /// Generate a simple JWT with minimal claims; just the standard set plus "Subject"
         /// </summary>
-        /// <param name="audience"></param>
-        /// <returns></returns>
+        /// <param name="audience">The Audience of the JWT</param>
+        /// <returns>The signed JWT for the provided claim values</returns>
         private string GenerateSubjectJwt(string audience)
         {
             // Add the subject claim
@@ -251,19 +253,19 @@ namespace DuoUniversal
 
 
         /// <summary>
-        /// TODO document 
+        /// Generate a random state at the default length
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A random state string</returns>
         public static string GenerateState()
         {
             return GenerateState(DEFAULT_STATE_LENGTH);
         }
 
         /// <summary>
-        ///  TODO document
+        ///  Generate a random state of the specified length; must be between the minimum and maximum lengths allowed by the client.
         /// </summary>
-        /// <param name="length"></param>
-        /// <returns></returns>
+        /// <param name="length">The desired length</param>
+        /// <returns>A random state string of the specified length</returns>
         public static string GenerateState(int length)
         {
             if (length > MAXIMUM_STATE_LENGTH || length < MINIMUM_STATE_LENGTH)
@@ -293,6 +295,13 @@ namespace DuoUniversal
         // For testing only
         private HttpMessageHandler _httpMessageHandler;
 
+        /// <summary>
+        /// Start building a Client with the four required parameters
+        /// </summary>
+        /// <param name="clientId">The Client ID</param>
+        /// <param name="clientSecret">The Client Secret</param>
+        /// <param name="apiHost">The API Host</param>
+        /// <param name="redirectUri">The Redirect URI</param>
         public ClientBuilder(string clientId, string clientSecret, string apiHost, string redirectUri)
         {
             _clientId = clientId;
@@ -301,6 +310,13 @@ namespace DuoUniversal
             _redirectUri = redirectUri;
         }
 
+        /// <summary>
+        /// Provide a custom HttpMessageHandler
+        ///
+        /// SHOULD ONLY BE USED FROM TESTS 
+        /// </summary>
+        /// <param name="httpMessageHandler">A custom HttpMessageHandler</param>
+        /// <returns>The ClientBuilder</returns>
         internal ClientBuilder CustomHandler(HttpMessageHandler httpMessageHandler)
         {
             _httpMessageHandler = httpMessageHandler;
@@ -336,6 +352,11 @@ namespace DuoUniversal
             return this;
         }
 
+        /// <summary>
+        /// Replace the 'code' attribute sent by Duo with 'duo_code'.  This may be necessary if 'code' is a reserved attribute, 
+        /// for example in some thick clients
+        /// </summary>
+        /// <returns>The ClientBuilder</returns>
         public ClientBuilder UseDuoCodeAttribute()
         {
             _useDuoCodeAttribute = true;
@@ -343,6 +364,10 @@ namespace DuoUniversal
             return this;
         }
 
+        /// <summary>
+        /// Build the Client based on the settings provided to the Builder 
+        /// </summary>
+        /// <returns>The Duo Client</returns>
         public Client Build()
         {
             Utils.ValidateRequiredParameters(_clientId, _clientSecret, _apiHost, _redirectUri);
