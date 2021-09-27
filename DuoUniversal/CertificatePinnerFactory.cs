@@ -34,6 +34,15 @@ namespace DuoUniversal
         }
 
         /// <summary>
+        /// Get a certificate "pinner" that effectively disables SSL certificate validation
+        /// </summary>
+        /// <returns></returns>
+        public static Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> GetCertificateDisabler()
+        {
+            return (httpRequestMessage, certificate, chain, sslPolicyErrors) => { return true; };
+        }
+
+        /// <summary>
         /// Get a certificate pinner that ensures only connections to the root certificates provided to the constructor are allowed
         /// </summary>
         /// <returns>A certificate pinner for use in an HttpClientHandler</returns>

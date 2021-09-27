@@ -8,7 +8,9 @@ using System.Collections.Specialized;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.Security;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace DuoUniversal
@@ -282,15 +284,16 @@ namespace DuoUniversal
         private readonly string _apiHost;
         private readonly string _redirectUri;
 
+        // Optional settings with default values
         private bool _useDuoCodeAttribute = false;
+        private bool _sslCertValidation = true;
 
 
-        // For testing
+        // For testing only
         private HttpMessageHandler _httpMessageHandler;
 
         public ClientBuilder(string clientId, string clientSecret, string apiHost, string redirectUri)
         {
-            // TODO validations
             _clientId = clientId;
             _clientSecret = clientSecret;
             _apiHost = apiHost;
@@ -300,6 +303,18 @@ namespace DuoUniversal
         internal ClientBuilder CustomHandler(HttpMessageHandler httpMessageHandler)
         {
             _httpMessageHandler = httpMessageHandler;
+
+            return this;
+        }
+
+        ///  <summary>
+        /// Disables SSL certificate validation for the API calls the client makes.
+        /// THIS SHOULD NEVER BE USED IN A PRODUCTION ENVIRONMENT
+        /// </summary>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder DisableSslCertificateValidation()
+        {
+            _sslCertValidation = false;
 
             return this;
         }
@@ -332,24 +347,59 @@ namespace DuoUniversal
             return duoClient;
         }
 
+        /// <summary>
+        /// Get the appropriate HttpClient based on the builder settings
+        /// </summary>
+        /// <returns>An HttpClient according to the builder settings</returns>
         private HttpClient BuildHttpClient()
         {
-            if (_httpMessageHandler != null)
-            {
-                return new HttpClient(_httpMessageHandler);
-            }
-
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = CertificatePinnerFactory.GetDuoCertificatePinner()
-            };
+            var handler = GetMessageHandler();
             return new HttpClient(handler);
         }
 
         /// <summary>
-        /// TODO Document
+        /// Get the appropriate HttpMessageHandler based on the builder settings:
+        ///   If a custom handler was specified, return that one (TESTS ONLY)
+        ///   Otherwise, return a Handler with the appropriate settings
         /// </summary>
-        /// <param name="httpClient"></param>
+        /// <returns>An HttpMessageHandler for use in a client</returns>
+        private HttpMessageHandler GetMessageHandler()
+        {
+            // Custom handler takes precedence
+            if (_httpMessageHandler != null)
+            {
+                return _httpMessageHandler;
+            }
+
+            var certPinner = GetCertificatePinner();
+            return new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = certPinner
+            };
+        }
+
+        /// <summary>
+        /// Get the appropriate SSL certificate pinner based on the builder settings:
+        ///   If certificate validation is disabled, get a pinner that disables validations
+        ///   TODO If a custom root cert collection was provided, pin to those
+        ///   Otherwise, pin to the Duo certificates
+        /// </summary>
+        /// <returns>A certificate pinner function</returns>
+        private Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> GetCertificatePinner()
+        {
+            if (!_sslCertValidation)
+            {
+                return CertificatePinnerFactory.GetCertificateDisabler();
+            }
+
+            return CertificatePinnerFactory.GetDuoCertificatePinner();
+        }
+
+        /// <summary>
+        /// Add a user agent to the provided HttpClient.  The user agent will include the version of this client and
+        /// information about the OS name
+        /// </summary>
+        /// <param name="httpClient">The HttpClient to set the user agent on</param>
         private static void AddUserAgent(HttpClient httpClient)
         {
             // Product name and version
