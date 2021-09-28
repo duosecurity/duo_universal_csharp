@@ -69,6 +69,12 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
+        public void TestReadCertFile()
+        {
+            Assert.AreEqual(CertificatePinnerFactory.ReadCertsFromFile().Length, 10);
+        }
+
+        [Test]
         public void TestSuccess()
         {
             Assert.True(duoPinner(null, DuoApiServerCert(), DuoApiChain(), SslPolicyErrors.None));
