@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
