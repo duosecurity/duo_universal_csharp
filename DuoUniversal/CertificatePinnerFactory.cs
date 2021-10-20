@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Duo Security
+﻿// SPDX-FileCopyrightText: 2021 Duo Security
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
@@ -136,7 +136,7 @@ namespace DuoUniversal
             {
                 certs = reader.ReadToEnd();
             }
-            return certs.Split(new string [] {"\n\n"}, int.MaxValue, StringSplitOptions.None);
+            return certs.Split(new string[] { "\n\n" }, int.MaxValue, StringSplitOptions.None);
         }
     }
 }
