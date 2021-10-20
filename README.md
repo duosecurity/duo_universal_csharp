@@ -9,7 +9,7 @@ What's here:
 * `DuoUniversal.Example` - An example web application with Duo integrated
 
 # Usage
-This library requires (TODO determine minimum .NET versions)
+This library requires .NET Core 3.1 or higher, or .NET Framework 4.6.1 or higher
 
 Using the .NET CLI:
 Run `dotnet build` to generate the assembly.
