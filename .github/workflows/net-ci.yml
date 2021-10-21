@@ -1,0 +1,68 @@
+name: .NET CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Build and test on .NET Core
+  dotnet-core-ci:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        dotnet-version: ['5.0.x']
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Install tools
+        run: dotnet tool restore
+
+      - name: Build solution
+        run: dotnet build
+
+      - name: Run tests
+        run: dotnet test
+
+      - name: Run linter
+        run: dotnet format --check
+
+  # Build and test on .NET Framework
+  dotnet-framework-ci:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v1.0.5
+
+      - name: Set up VSTest
+        uses: darenm/Setup-VSTest@v1
+
+      - name: Install dependencies
+        run: nuget restore duo_universal_csharp.sln
+
+      - name: Build solution
+        run: msbuild.exe duo_universal_csharp.sln
+
+      - name: Run DuoUniversal.Tests
+        run: vstest.console.exe .\DuoUniversal.Tests\bin\Debug\net5.0\DuoUniversal.Tests.dll
+

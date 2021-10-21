@@ -22,6 +22,7 @@ Run `dotnet build` to generate the assembly.
 
 Using the .NET CLI:
 From the DuoUniversal.Example directory run:
+
 `dotnet build`
 
 ## Run
@@ -31,16 +32,31 @@ are filled out with the values from the Duo Admin Panel (Client Id, Client Secre
 
 Using the .NET CLI:
 From the DuoUniversal.Example base directory run the following to start the server:
+
 `dotnet run`
 
 Navigate to <https://localhost:5001> or <http://localhost:5000> to see a mock user login form.  Enter a Duo username and any password to initiate Duo 2FA.
 
 # Testing
 
+The tests require .NET Core 5.0.
+
 Using the .NET CLI:
 From the root directory run:
 
 `dotnet test`
+
+# Linting
+
+Using the .NET CLI:
+First, ensure you have the dotnet linter installed.
+From the root directory run:
+
+`dotnet tool restore`
+
+Check the code format with:
+
+`dotnet format --check`
 
 # Support
 
