@@ -33,7 +33,7 @@ are filled out with the values from the Duo Admin Panel (Client Id, Client Secre
 Using the .NET CLI:
 From the DuoUniversal.Example base directory run the following to start the server:
 
-`dotnet run`
+`dotnet run --framework net5.0`
 
 Navigate to <https://localhost:5001> or <http://localhost:5000> to see a mock user login form.  Enter a Duo username and any password to initiate Duo 2FA.
 
