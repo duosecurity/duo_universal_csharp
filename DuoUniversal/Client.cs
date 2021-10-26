@@ -178,10 +178,8 @@ namespace DuoUniversal
         /// <returns>A signed JWT</returns>
         private string GenerateAuthJwt(string username, string state, string authEndpoint)
         {
-            string audience = "https://" + ApiHost; // TODO temporary fix for a Duo-side bug
             var additionalClaims = new Dictionary<string, string>
             {
-                {Labels.AUD, audience}, // TODO Temporarily override the audience value until the Duo-side bug is fixed
                 {Labels.CLIENT_ID, ClientId},
                 {Labels.DUO_UNAME, username},
                 {Labels.REDIRECT_URI, RedirectUri},
