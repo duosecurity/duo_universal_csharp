@@ -5,7 +5,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>DuoUniversal</PackageId>
     <Version>0.5.0</Version>
+    <Authors>Duo Security</Authors>
+    <Company>Duo Security</Company>
+    <Copyright>Duo Security</Copyright>
+    <PackageDescription>Duo Universal Prompt client for 2FA</PackageDescription>
+    <PackageTags>duo;2fa;mfa;authentication</PackageTags>
+    <PackageLicense>BSD-3-Clause</PackageLicense>
   </PropertyGroup>
 
   <ItemGroup>
