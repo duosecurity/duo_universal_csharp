@@ -11,8 +11,8 @@ What's here:
 # Usage
 This library requires .NET Core 3.1 or higher, or .NET Framework 4.6.1 or higher
 
-Using the .NET CLI:
-Run `dotnet build` to generate the assembly.
+## With the .NET CLI
+Run `dotnet build` to generate the assemblies.
 
 (TODO NuGet instructions)
 
@@ -20,20 +20,22 @@ Run `dotnet build` to generate the assembly.
 
 ## Build
 
-Using the .NET CLI:
+### With the .NET CLI
 From the DuoUniversal.Example directory run:
 
 `dotnet build`
 
 ## Run
 
-In order to run this project, ensure the values in `DuoUniversal.Example/appsettings.json` (or `appsettings.Development.json if you prefer`) 
+In order to run this project, ensure the values in `DuoUniversal.Example/appsettings.json` (or `appsettings.Development.json` if you prefer) 
 are filled out with the values from the Duo Admin Panel (Client Id, Client Secret, API Host, and Redirect Uri)
 
-Using the .NET CLI:
+### With the .NET CLI
 From the DuoUniversal.Example base directory run the following to start the server:
 
 `dotnet run --framework net5.0`
+
+Or you can use `--framework netcoreapp3.1` if you prefer.
 
 Navigate to <https://localhost:5001> or <http://localhost:5000> to see a mock user login form.  Enter a Duo username and any password to initiate Duo 2FA.
 
@@ -41,14 +43,14 @@ Navigate to <https://localhost:5001> or <http://localhost:5000> to see a mock us
 
 The tests require .NET Core 5.0.
 
-Using the .NET CLI:
+## With the .NET CLI
 From the root directory run:
 
 `dotnet test`
 
 # Linting
 
-Using the .NET CLI:
+## With the .NET CLI
 First, ensure you have the dotnet linter installed.
 From the root directory run:
 
