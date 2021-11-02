@@ -11,10 +11,10 @@ What's here:
 # Usage
 This library requires .NET Core 3.1 or higher, or .NET Framework 4.6.1 or higher
 
+It will be published on NuGet soon.
+
 ## With the .NET CLI
 Run `dotnet build` to generate the assemblies.
-
-(TODO NuGet instructions)
 
 # Demo
 
