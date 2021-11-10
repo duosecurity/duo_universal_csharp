@@ -2,7 +2,7 @@
 
 This library allows a web developer to quickly add Duo's interactive, self-service, two-factor authentication to any .NET web login form.
 
-See our developer documentation at http://www.duosecurity.com/docs/duoweb for guidance on integrating Duo 2FA into your web application.
+See our developer documentation at https://www.duosecurity.com/docs/duoweb for guidance on integrating Duo 2FA into your web application.
 
 What's here:
 * `DuoUniversal` - The Duo SDK for interacting with the Duo Universal Prompt
@@ -66,4 +66,4 @@ Please report any bugs, feature requests, or issues to us directly at support@du
 
 Thank you for using Duo!
 
-http://www.duosecurity.com/
+https://www.duosecurity.com/
