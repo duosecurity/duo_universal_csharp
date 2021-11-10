@@ -1,5 +1,11 @@
 # Duo Universal Prompt C# Client
 
+[![Build Status](https://github.com/duosecurity/duo_universal_csharp/workflows/.NET%20CI/badge.svg)](https://github.com/duosecurity/duo_universal_csharp/actions)
+[![Issues](https://img.shields.io/github/issues/duosecurity/duo_universal_csharp)](https://github.com/duosecurity/duo_universal_csharp/issues)
+[![Forks](https://img.shields.io/github/forks/duosecurity/duo_universal_csharp)](https://github.com/duosecurity/duo_universal_csharp/network/members)
+[![Stars](https://img.shields.io/github/stars/duosecurity/duo_universal_csharp)](https://github.com/duosecurity/duo_universal_csharp/stargazers)
+[![License](https://img.shields.io/badge/License-View%20License-orange)](https://github.com/duosecurity/duo_universal_csharp/blob/master/LICENSES/BSD-3-Clause.txt)
+
 This library allows a web developer to quickly add Duo's interactive, self-service, two-factor authentication to any .NET web login form.
 
 See our developer documentation at https://www.duosecurity.com/docs/duoweb for guidance on integrating Duo 2FA into your web application.
