@@ -66,4 +66,4 @@ Please report any bugs, feature requests, or issues to us directly at support@du
 
 Thank you for using Duo!
 
-https://www.duosecurity.com/
+https://duo.com/
