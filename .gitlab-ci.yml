@@ -1,0 +1,4 @@
+include:
+  - project: "mirrors/duo_universal_csharp_ci"
+    ref: "main"
+    file: ".gitlab-ci.yml"
