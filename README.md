@@ -39,7 +39,7 @@ are filled out with the values from the Duo Admin Panel (Client Id, Client Secre
 ### With the .NET CLI
 From the DuoUniversal.Example base directory run the following to start the server:
 
-`dotnet run --framework net5.0`
+`dotnet run --framework net6.0`
 
 Or you can use `--framework netcoreapp3.1` if you prefer.
 
@@ -47,7 +47,7 @@ Navigate to <https://localhost:5001> or <http://localhost:5000> to see a mock us
 
 # Testing
 
-The tests require .NET Core 5.0.
+The tests require .NET Core 6.0.
 
 ## With the .NET CLI
 From the root directory run:
