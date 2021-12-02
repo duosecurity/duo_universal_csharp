@@ -39,7 +39,7 @@ jobs:
         run: dotnet test
 
       - name: Run linter
-        run: dotnet format --check
+        run: dotnet format --verify-no-changes
 
   # Build and test on .NET Framework
   dotnet-framework-ci:
@@ -64,5 +64,5 @@ jobs:
         run: msbuild.exe duo_universal_csharp.sln
 
       - name: Run DuoUniversal.Tests
-        run: vstest.console.exe .\DuoUniversal.Tests\bin\Debug\net5.0\DuoUniversal.Tests.dll
+        run: vstest.console.exe .\DuoUniversal.Tests\bin\Debug\net6.0\DuoUniversal.Tests.dll
 

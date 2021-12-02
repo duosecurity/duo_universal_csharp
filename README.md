@@ -64,7 +64,7 @@ From the root directory run:
 
 Check the code format with:
 
-`dotnet format --check`
+`dotnet format --verify-no-changes`
 
 # Support
 
