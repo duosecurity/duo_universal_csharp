@@ -43,7 +43,7 @@ jobs:
 
   # Build and test on .NET Framework
   dotnet-framework-ci:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v2
