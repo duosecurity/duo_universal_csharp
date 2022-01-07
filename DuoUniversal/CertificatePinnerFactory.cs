@@ -136,8 +136,8 @@ namespace DuoUniversal
             {
                 certs = reader.ReadToEnd();
             }
-            var twoNewlines = $"{Environment.NewLine}{Environment.NewLine}";
-            return certs.Split(new string[] { twoNewlines }, int.MaxValue, StringSplitOptions.None);
+            var splitOn = "-----DUO_CERT-----";
+            return certs.Split(new string[] { splitOn }, int.MaxValue, StringSplitOptions.None);
         }
     }
 }
