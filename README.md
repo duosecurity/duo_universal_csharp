@@ -15,7 +15,7 @@ What's here:
 * `DuoUniversal.Example` - An example web application with Duo integrated
 
 # Usage
-This library requires .NET Core 3.1 or higher, or .NET Framework 4.6.1 or higher
+This library requires .NET Core 3.1 or higher, or .NET Framework 4.7.1 or higher
 
 It will be published on NuGet soon.
 
