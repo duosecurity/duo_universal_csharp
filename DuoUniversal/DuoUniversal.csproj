@@ -1,4 +1,4 @@
-<!-- SPDX-FileCopyrightText: 2021 Duo Security -->
+﻿<!-- SPDX-FileCopyrightText: 2021 Duo Security -->
 <!-- SPDX-License-Identifier: BSD-3-Clause -->
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -12,7 +12,11 @@
     <Copyright>Duo Security</Copyright>
     <PackageDescription>Duo Universal Prompt client for 2FA</PackageDescription>
     <PackageTags>duo;2fa;mfa;authentication</PackageTags>
-    <PackageLicense>BSD-3-Clause</PackageLicense>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/duosecurity/duo_universal_csharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Description>Duo two-factor authentication for .NET web applications</Description>
+    <PackageProjectUrl>https://github.com/duosecurity/duo_universal_csharp</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
