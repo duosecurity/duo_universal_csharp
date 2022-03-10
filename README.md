@@ -61,11 +61,6 @@ From the root directory run:
 # Linting
 
 ## With the .NET CLI
-First, ensure you have the dotnet linter installed.
-From the root directory run:
-
-`dotnet tool restore`
-
 Check the code format with:
 
 `dotnet format --verify-no-changes`
