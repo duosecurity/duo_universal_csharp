@@ -18,6 +18,7 @@ namespace DuoUniversal
     public class Client
     {
         public const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
+        public const string DUO_UNIVERSAL_CSHARP_VERSION = "1.0.0";
 
         internal const int CLIENT_ID_LENGTH = 20;
         internal const int CLIENT_SECRET_LENGTH = 40;
@@ -285,6 +286,9 @@ namespace DuoUniversal
         private readonly string _redirectUri;
 
         // Optional settings with default values
+        private string _customAppName;
+        private string _customAppVersion;
+        private string _additionalUserAgentString;
         private bool _useDuoCodeAttribute = false;
         private bool _sslCertValidation = true;
         private X509Certificate2Collection _customRoots = null;
@@ -358,6 +362,32 @@ namespace DuoUniversal
         public ClientBuilder UseDuoCodeAttribute()
         {
             _useDuoCodeAttribute = true;
+
+            return this;
+        }
+
+        ///  <summary>
+        /// Provide custom application information (name + version) to be included in the user agent
+        /// </summary>
+        /// <param name="customAppName">The custom application name to include</param>
+        /// <param name="customAppVersion">The custom application version to include</param>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder CustomizeUserAgentApp(string customAppName, string customAppVersion)
+        {
+            _customAppName = customAppName;
+            _customAppVersion = customAppVersion;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Provide a custom string to be appended to the user agent
+        /// </summary>
+        /// <param name="additionalUserAgentString">The string to append</param>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder AppendToUserAgent(string additionalUserAgentString)
+        {
+            _additionalUserAgentString = additionalUserAgentString;
 
             return this;
         }
@@ -442,20 +472,51 @@ namespace DuoUniversal
 
         /// <summary>
         /// Add a user agent to the provided HttpClient.  The user agent will include the version of this client and
-        /// information about the OS name
+        /// information about the OS name, plus any additional string supplied via the AppendToUserAgent method.
+        /// 
+        /// Throws a DuoException if this would create an invalid User-Agent header
         /// </summary>
         /// <param name="httpClient">The HttpClient to set the user agent on</param>
-        private static void AddUserAgent(HttpClient httpClient)
+        private void AddUserAgent(HttpClient httpClient)
         {
-            // Product name and version
-            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            ProductInfoHeaderValue ua = new ProductInfoHeaderValue(Client.DUO_UNIVERSAL_CSHARP, version);
-            httpClient.DefaultRequestHeaders.UserAgent.Add(ua);
+            try
+            {
+                // Product name and version
+                ProductInfoHeaderValue ua = new ProductInfoHeaderValue(Client.DUO_UNIVERSAL_CSHARP, Client.DUO_UNIVERSAL_CSHARP_VERSION);
+                httpClient.DefaultRequestHeaders.UserAgent.Add(ua);
 
-            // Additional info
-            var os = Environment.OSVersion.ToString();
-            ProductInfoHeaderValue stuff = new ProductInfoHeaderValue($"({os})");
-            httpClient.DefaultRequestHeaders.UserAgent.Add(stuff);
+                if (HasCustomAppInfo())
+                {
+                    ProductInfoHeaderValue customApp = new ProductInfoHeaderValue(_customAppName, _customAppVersion);
+                    httpClient.DefaultRequestHeaders.UserAgent.Add(customApp);
+                }
+
+                // Additional info
+                // TODO this is unreliable in some cases, and insufficient in others
+                var os = Environment.OSVersion.ToString();
+                ProductInfoHeaderValue stuff = new ProductInfoHeaderValue($"({os})");
+                httpClient.DefaultRequestHeaders.UserAgent.Add(stuff);
+
+                // Custom additional string
+                if (!string.IsNullOrWhiteSpace(_additionalUserAgentString))
+                {
+                    ProductInfoHeaderValue custom = new ProductInfoHeaderValue($"({_additionalUserAgentString})");
+                    httpClient.DefaultRequestHeaders.UserAgent.Add(custom);
+                }
+            }
+            catch (FormatException fe)
+            {
+                throw new DuoException("Invalid User Agent", fe);
+            }
+        }
+
+        /// <summary>
+        /// Determine if a custom application name and version have been specified
+        /// </summary>
+        /// <returns>True if both a custom application name and version have been specified; False otherwise</returns>
+        private bool HasCustomAppInfo()
+        {
+            return !string.IsNullOrWhiteSpace(_customAppName) && !string.IsNullOrWhiteSpace(_customAppVersion);
         }
     }
 }
