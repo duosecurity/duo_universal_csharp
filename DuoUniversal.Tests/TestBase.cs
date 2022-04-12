@@ -49,8 +49,8 @@ namespace DuoUniversal.Tests
                         flash_version = "4.3.2.1",
                         hostname = "hostname",
                         ip = "100.200.100.200",
-                        is_encryption_enabled = "unknown",
-                        is_firewall_enabled = "unknown",
+                        is_encryption_enabled = true,
+                        is_firewall_enabled = false,
                         is_password_set = "unknown",
                         java_version = "4.3.2.1",
                         location = new

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace DuoUniversal
@@ -100,10 +101,13 @@ namespace DuoUniversal
         [JsonPropertyName("ip")]
         public string IpAddress { get; set; }
         [JsonPropertyName("is_encryption_enabled")]
+        [JsonConverter(typeof(StringifyingConverter))]
         public string IsEncryptionEnabled { get; set; }
         [JsonPropertyName("is_firewall_enabled")]
+        [JsonConverter(typeof(StringifyingConverter))]
         public string IsFirewallEnabled { get; set; }
         [JsonPropertyName("is_password_set")]
+        [JsonConverter(typeof(StringifyingConverter))]
         public string IsPasswordSet { get; set; }
         [JsonPropertyName("java_version")]
         public string JavaVersion { get; set; }
@@ -163,5 +167,47 @@ namespace DuoUniversal
         public string Status { get; set; }
         [JsonPropertyName("status_msg")]
         public string StatusMsg { get; set; }
+    }
+
+    /// <summary>
+    /// For certain fields in the API response for an ID Token, Duo can send either true, false, or 'unknown', which we need to parse correctly
+    /// </summary>
+    internal class StringifyingConverter : JsonConverter<string>
+    {
+        /// <summary>
+        /// Parse the 'special' Duo three-valued boolean into "true", "false", or returns the string Duo sent
+        /// </summary>
+        /// <returns>a string</returns>
+        public override string Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var rtt = reader.TokenType;
+            switch (rtt)
+            {
+                case JsonTokenType.True:
+                    {
+                        return "true";
+                    }
+                case JsonTokenType.False:
+                    {
+                        return "false";
+                    }
+                case JsonTokenType.String:
+                    {
+                        return reader.GetString();
+                    }
+                default:
+                    {
+                        return null;
+                    }
+            }
+        }
+
+        /// <summary>
+        /// Write the value back to JSON
+        /// </summary>
+        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value);
+        }
     }
 }
