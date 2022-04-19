@@ -209,8 +209,6 @@ namespace DuoUniversal.Tests
             Assert.AreEqual(expectedClientId, parameters[Labels.ISS]);
             Assert.AreEqual(expectedAudience, parameters[Labels.AUD]);
             Assert.IsNotEmpty(parameters[Labels.JTI]);
-            Assert.IsNotEmpty(parameters[Labels.IAT]);
-            Assert.IsNotEmpty(parameters[Labels.NBF]);
             Assert.IsNotEmpty(parameters[Labels.EXP]);
 
             foreach (KeyValuePair<string, string> claim in expectedClaims)

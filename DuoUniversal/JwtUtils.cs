@@ -19,7 +19,7 @@ namespace DuoUniversal
 
         /// <summary>
         /// Generate an OIDC-compliant JWT for the specified client id and audience, signed with the specified secret.
-        /// The "iss", "aud", "jti", "iat", "nbf", and "exp" claims will be automatically added.
+        /// The "iss", "aud", "jti", and "exp" claims will be automatically added.
         /// Additional claims to be included can be specified in the additionalClaims argument
         /// </summary>
         /// <param name="clientId">OIDC Client Id</param>
@@ -157,11 +157,13 @@ namespace DuoUniversal
         private static IDictionary<string, string> GenerateParams(string clientId, string audience, IDictionary<string, string> additionalClaims)
         {
             string jti = Utils.GenerateRandomString(36);
+            string exp = CalculateExpiration();
 
             var claims = new Dictionary<string, string>() {
                 {Labels.ISS, clientId},
                 {Labels.AUD, audience},
-                {Labels.JTI, jti}
+                {Labels.JTI, jti},
+                {Labels.EXP, exp}
             };
 
             // Caller can provide additional claims, or overwrite the default ones, if necessary
@@ -171,6 +173,12 @@ namespace DuoUniversal
             }
 
             return claims;
+        }
+
+        private static string CalculateExpiration()
+        {
+            long exp = EpochTime.GetIntDate(DateTime.UtcNow.AddMinutes(FIVE_MINUTES));
+            return exp.ToString();
         }
 
         /// <summary>
@@ -195,11 +203,11 @@ namespace DuoUniversal
 
             JsonWebTokenHandler jwtHandler = new JsonWebTokenHandler
             {
+                // We'll manually set the timestamps we care about
+                SetDefaultTimesOnTokenCreation = false,
                 TokenLifetimeInMinutes = FIVE_MINUTES
             };
 
-            // CreateToken automatically adds "iat","nbf", and "exp" to the payload
-            // "exp" is calulcated using the TokenLifetimeInMinutes set above
             return jwtHandler.CreateToken(payload, signingCreds);
         }
 
