@@ -481,15 +481,15 @@ namespace DuoUniversal
         {
             try
             {
-                // Product name and version
-                ProductInfoHeaderValue ua = new ProductInfoHeaderValue(Client.DUO_UNIVERSAL_CSHARP, Client.DUO_UNIVERSAL_CSHARP_VERSION);
-                httpClient.DefaultRequestHeaders.UserAgent.Add(ua);
-
                 if (HasCustomAppInfo())
                 {
                     ProductInfoHeaderValue customApp = new ProductInfoHeaderValue(_customAppName, _customAppVersion);
                     httpClient.DefaultRequestHeaders.UserAgent.Add(customApp);
                 }
+
+                // Product name and version
+                ProductInfoHeaderValue ua = new ProductInfoHeaderValue(Client.DUO_UNIVERSAL_CSHARP, Client.DUO_UNIVERSAL_CSHARP_VERSION);
+                httpClient.DefaultRequestHeaders.UserAgent.Add(ua);
 
                 // Additional info
                 // TODO this is unreliable in some cases, and insufficient in others
