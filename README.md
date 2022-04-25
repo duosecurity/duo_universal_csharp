@@ -17,11 +17,11 @@ What's here:
 # Usage
 This library requires .NET Core 3.1 or higher, or .NET Framework 4.7.1 or higher
 
-The library is available on NuGet at https://www.nuget.org/packages/DuoUniversal/1.1.1
+The library is available on NuGet at https://www.nuget.org/packages/DuoUniversal/1.1.2
 
 Include it in your .NET project with:
 
-`dotnet add package DuoUniversal --version 1.1.1`
+`dotnet add package DuoUniversal --version 1.1.2`
 
 ## With the .NET CLI
 Run `dotnet build` to generate the assemblies.
