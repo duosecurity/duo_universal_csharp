@@ -61,7 +61,6 @@ namespace DuoUniversal.Tests
                         },
                         os = "Mac OS X",
                         os_version = "10.15.7",
-                        security_agents = "unknown"
                     },
                     alias = "",
                     application = new

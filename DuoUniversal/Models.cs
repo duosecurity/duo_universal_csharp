@@ -117,8 +117,6 @@ namespace DuoUniversal
         public string OperatingSystem { get; set; }
         [JsonPropertyName("os_version")]
         public string OperatingSystemVersion { get; set; }
-        [JsonPropertyName("security_agents")]
-        public string SecurityAgents { get; set; }
     }
 
     public class Location
