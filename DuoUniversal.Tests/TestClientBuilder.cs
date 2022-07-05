@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 using System;
+using System.Net;
 using NUnit.Framework;
 
 namespace DuoUniversal.Tests
@@ -126,6 +127,14 @@ namespace DuoUniversal.Tests
             {
                 BasicBuilder().AppendToUserAgent(additionalUserAgentString).Build();
             });
+        }
+
+        [Test]
+        public void TestWebProxy()
+        {
+            // Just shouldn't error out
+            var proxy = new WebProxy("www.fakeduo.com", 12345);
+            BasicBuilder().UseHttpProxy(proxy).Build();
         }
     }
 }

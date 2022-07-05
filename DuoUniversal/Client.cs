@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -292,6 +293,7 @@ namespace DuoUniversal
         private bool _useDuoCodeAttribute = false;
         private bool _sslCertValidation = true;
         private X509Certificate2Collection _customRoots = null;
+        private IWebProxy proxy = null;
 
 
         // For testing only
@@ -393,6 +395,18 @@ namespace DuoUniversal
         }
 
         /// <summary>
+        /// Provide an http proxy for the client to use
+        /// </summary>
+        /// <param name="proxy">The http proxy for the client</param>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder UseHttpProxy(IWebProxy proxy)
+        {
+            this.proxy = proxy;
+
+            return this;
+        }
+
+        /// <summary>
         /// Build the Client based on the settings provided to the Builder 
         /// </summary>
         /// <returns>The Duo Client</returns>
@@ -442,10 +456,18 @@ namespace DuoUniversal
             }
 
             var certPinner = GetCertificatePinner();
-            return new HttpClientHandler
+            var handler = new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = certPinner
             };
+
+            // Set the proxy if there is one
+            if (proxy != null)
+            {
+                handler.Proxy = proxy;
+            }
+
+            return handler;
         }
 
         /// <summary>
