@@ -13,7 +13,7 @@ namespace DuoUniversal.Tests
     public class TestHealthCheck : ClientTestBase
     {
         private const string HEALTHY_CONTENT = @"{""stat"": ""OK"", ""response"": {""timestamp"": ""1629837896""}}";
-        private const string UNHEALTHY_CONTENT = @"{""stat"": ""FAIL"", ""response"": {""code"": ""40301"", ""timestamp"": ""1629837896"", ""message"": ""ohnoes"", ""message_detail"": ""ohnoes""}}";
+        private const string UNHEALTHY_CONTENT = @"{""stat"": ""FAIL"", ""code"": ""40301"", ""timestamp"": ""1629837896"", ""message"": ""ohnoes"", ""message_detail"": ""ohnoes""}";
 
         [Test]
         public async Task TestSuccess()

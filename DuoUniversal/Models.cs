@@ -13,16 +13,19 @@ namespace DuoUniversal
     internal class HealthCheckResponse
     {
         public string Stat { get; set; }
-        public HealthCheckResponseDetail Response { get; set; }
-    }
-
-    internal class HealthCheckResponseDetail
-    {
+        // Response will only be set if Stat == "OK"
+        public HealthCheckSuccessDetail Response { get; set; }
+        // These 4 fields will only be set if Stat == "FAIL"
         public int Timestamp { get; set; }
-        public string Code { get; set; }
+        public int Code { get; set; }
         public string Message { get; set; }
         [JsonPropertyName("message_detail")]
         public string MessageDetail { get; set; }
+    }
+
+    internal class HealthCheckSuccessDetail
+    {
+      public int Timestamp { get; set; }
     }
 
     internal class TokenResponse
