@@ -25,7 +25,7 @@ namespace DuoUniversal
 
     internal class HealthCheckSuccessDetail
     {
-      public int Timestamp { get; set; }
+        public int Timestamp { get; set; }
     }
 
     internal class TokenResponse
