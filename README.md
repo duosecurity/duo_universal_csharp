@@ -14,6 +14,8 @@ What's here:
 * `DuoUniversal` - The Duo SDK for interacting with the Duo Universal Prompt
 * `DuoUniversal.Example` - An example web application with Duo integrated
 
+The example application has a dedicated README with further instructions on how to build and run it.
+
 # Usage
 This library requires .NET Core 3.1 or higher, or .NET Framework 4.7.1 or higher
 
@@ -25,29 +27,6 @@ Include it in your .NET project with:
 
 ## With the .NET CLI
 Run `dotnet build` to generate the assemblies.
-
-# Demo
-
-## Build
-
-### With the .NET CLI
-From the DuoUniversal.Example directory run:
-
-`dotnet build`
-
-## Run
-
-In order to run this project, ensure the values in `DuoUniversal.Example/appsettings.json` (or `appsettings.Development.json` if you prefer) 
-are filled out with the values from the Duo Admin Panel (Client Id, Client Secret, API Host, and Redirect Uri)
-
-### With the .NET CLI
-From the DuoUniversal.Example base directory run the following to start the server:
-
-`dotnet run --framework net6.0`
-
-Or you can use `--framework netcoreapp3.1` if you prefer.
-
-Navigate to <https://localhost:5001> or <http://localhost:5000> to see a mock user login form.  Enter a Duo username and any password to initiate Duo 2FA.
 
 # Testing
 
