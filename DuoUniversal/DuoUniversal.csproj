@@ -1,4 +1,4 @@
-﻿<!-- SPDX-FileCopyrightText: 2021 Duo Security -->
+﻿<!-- SPDX-FileCopyrightText: 2022 Cisco Systems, Inc. and/or its affiliates -->
 <!-- SPDX-License-Identifier: BSD-3-Clause -->
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -9,7 +9,7 @@
     <Version>1.2.0</Version>
     <Authors>Duo Security</Authors>
     <Company>Duo Security</Company>
-    <Copyright>Duo Security</Copyright>
+    <Copyright>Cisco Systems, Inc. and/or its affiliates</Copyright>
     <PackageDescription>Duo Universal Prompt client for 2FA</PackageDescription>
     <PackageTags>duo;2fa;mfa;authentication</PackageTags>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>

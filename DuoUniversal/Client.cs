@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2021 Duo Security
+﻿// SPDX-FileCopyrightText: 2022 Cisco Systems, Inc. and/or its affiliates
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
