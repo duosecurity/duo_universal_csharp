@@ -25,7 +25,11 @@ Include it in your .NET project with:
 
 `dotnet add package DuoUniversal --version 1.2.0`
 
-## With the .NET CLI
+## TLS 1.2 and 1.3 Support
+
+Duo_universal_csharp uses the .NET libraries for TLS operations.  .NET 4.7 or later is required for TLS 1.2; .NET 4.8 or later is required for TLS 1.3.
+
+## Building with the .NET CLI
 Run `dotnet build` to generate the assemblies.
 
 # Testing
