@@ -46,8 +46,9 @@ namespace DuoUniversal
         /// <summary>
         /// Call the Duo health check endpoint to determine if Duo is healthy (able to service requests)
         /// </summary>
+        /// <param name="handleException">An optional argument that allows callers to handle exceptions by passing false</param>
         /// <returns>true if Duo is healthy, false otherwise</returns>
-        public async Task<bool> DoHealthCheck()
+        public async Task<bool> DoHealthCheck(bool handleException = true)
         {
             string healthCheckUrl = CustomizeApiUri(HEALTH_CHECK_ENDPOINT);
 
@@ -63,8 +64,12 @@ namespace DuoUniversal
                 var response = await DoPost<HealthCheckResponse>(healthCheckUrl, parameters);
                 return response.Stat == "OK";
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException e)
             {
+                if (!handleException)
+                {
+                    throw e;
+                }
                 // Interpret HTTP exceptions as Duo being unhealthy
                 return false;
             }

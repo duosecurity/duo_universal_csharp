@@ -46,5 +46,12 @@ namespace DuoUniversal.Tests
             bool healthy = await client.DoHealthCheck();
             Assert.False(healthy);
         }
+
+        [Test]
+        public void TestRethrownHttpException()
+        {
+            Client client = MakeClient(new HttpExcepter());
+            Assert.ThrowsAsync<HttpRequestException>(async () => await client.DoHealthCheck(false));
+        }
     }
 }
