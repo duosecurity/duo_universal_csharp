@@ -226,10 +226,15 @@ namespace DuoUniversal
         /// Generate a SecurityKey for the given shared secret 
         /// </summary>
         /// <param name="secret">The shared secret</param>
-        /// <returns>A SecurityKey encoding thae share secret</returns>
+        /// <returns>A SecurityKey encoding the shared secret</returns>
         private static SecurityKey GenerateSecurityKey(string secret)
         {
             byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
+            // In case anything wants to enforce the correct key size, pad out to 64 bytes
+            if (keyBytes.Length < 64)
+            {
+                Array.Resize(ref keyBytes, 64);
+            }
             return new SymmetricSecurityKey(keyBytes);
         }
     }
