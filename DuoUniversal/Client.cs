@@ -112,7 +112,7 @@ namespace DuoUniversal
                 {Labels.CLIENT_ASSERTION, tokenJwt},
                 {Labels.CLIENT_ASSERTION_TYPE, Labels.JWT_BEARER_TYPE},
                 {Labels.GRANT_TYPE, Labels.AUTHORIZATION_CODE},
-                {Labels.REDIRECT_URI, RedirectUri + "foo"},
+                {Labels.REDIRECT_URI, RedirectUri},
             };
 
             TokenResponse tokenResponse;
