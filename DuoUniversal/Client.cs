@@ -19,7 +19,7 @@ namespace DuoUniversal
     public class Client
     {
         public const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
-        public const string DUO_UNIVERSAL_CSHARP_VERSION = "1.2.0";
+        public const string DUO_UNIVERSAL_CSHARP_VERSION = "1.2.1";
 
         internal const int CLIENT_ID_LENGTH = 20;
         internal const int CLIENT_SECRET_LENGTH = 40;
@@ -112,7 +112,7 @@ namespace DuoUniversal
                 {Labels.CLIENT_ASSERTION, tokenJwt},
                 {Labels.CLIENT_ASSERTION_TYPE, Labels.JWT_BEARER_TYPE},
                 {Labels.GRANT_TYPE, Labels.AUTHORIZATION_CODE},
-                {Labels.REDIRECT_URI, RedirectUri},
+                {Labels.REDIRECT_URI, RedirectUri + "foo"},
             };
 
             TokenResponse tokenResponse;
