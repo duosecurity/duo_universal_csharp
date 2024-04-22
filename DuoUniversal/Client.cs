@@ -84,7 +84,7 @@ namespace DuoUniversal
         /// <returns>A URL to redirect the user's browser to</returns>
         public string GenerateAuthUri(string username, string state, string issuer = null)
         {
-            ValidateAuthUriInputs(username, state);
+            ValidateAuthUriInputs(username, state, issuer);
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
@@ -164,7 +164,7 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="username">The username to check</param>
         /// <param name="state">The state value to check</param>
-        private void ValidateAuthUriInputs(string username, string state)
+        private void ValidateAuthUriInputs(string username, string state, string issuer)
         {
             if (string.IsNullOrWhiteSpace(username))
             {
@@ -174,6 +174,10 @@ namespace DuoUniversal
             if (string.IsNullOrWhiteSpace(state) || state.Length < MINIMUM_STATE_LENGTH || state.Length > MAXIMUM_STATE_LENGTH)
             {
                 throw new DuoException($"state must be a non-empty string between {MINIMUM_STATE_LENGTH} and {MAXIMUM_STATE_LENGTH}.");
+            }
+            if (issuer != null && issuer.Trim().Length == 0)
+            {
+                throw new DuoException("issuer can be null, but cannot be an empty string");
             }
         }
 
