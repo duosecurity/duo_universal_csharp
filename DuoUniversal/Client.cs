@@ -203,7 +203,7 @@ namespace DuoUniversal
             };
 
             // issuer parameter is used for the Epic Hyperdrive integration only
-            if (issuer != null) 
+            if (issuer != null)
             {
                 additionalClaims[Labels.ISSUER] = issuer;
             }
