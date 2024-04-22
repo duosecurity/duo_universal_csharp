@@ -80,14 +80,15 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
         /// <param name="state">A unique identifier for the authentication attempt</param>
+        /// <param name="issuer">A specific parameter used for the Epic Hyperdrive integration to generate the samlResponse</param>
         /// <returns>A URL to redirect the user's browser to</returns>
-        public string GenerateAuthUri(string username, string state)
+        public string GenerateAuthUri(string username, string state, string issuer = null)
         {
             ValidateAuthUriInputs(username, state);
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
-            string authJwt = GenerateAuthJwt(username, state, authEndpoint);
+            string authJwt = GenerateAuthJwt(username, state, authEndpoint, issuer);
 
             return BuildAuthUri(authEndpoint, authJwt);
         }
@@ -182,8 +183,9 @@ namespace DuoUniversal
         /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
         /// <param name="state">A unique identifier for the authentication attempt</param>
         /// <param name="authEndpoint">The Duo endpoint URI</param>
+        /// <param name="issuer">A specific parameter used for the Epic Hyperdrive to generate the samlResponse</param>
         /// <returns>A signed JWT</returns>
-        private string GenerateAuthJwt(string username, string state, string authEndpoint)
+        private string GenerateAuthJwt(string username, string state, string authEndpoint, string issuer = null)
         {
             var additionalClaims = new Dictionary<string, string>
             {
@@ -195,6 +197,12 @@ namespace DuoUniversal
                 {Labels.STATE, state}
                 // TODO support nonce
             };
+
+            // issuer parameter is used for the Epic Hyperdrive integration only
+            if (issuer != null) 
+            {
+                additionalClaims[Labels.ISSUER] = issuer;
+            }
 
             if (UseDuoCodeAttribute)
             {
