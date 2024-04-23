@@ -36,7 +36,8 @@ namespace DuoUniversal.Tests
         [TestCase("user@foo.bar")]
         public void TestSuccessWithIssuer(string username)
         {
-            string authUri = client.GenerateAuthUri(username, STATE, "http://issuer");
+            Client clientWithIssuer = new ClientBuilder(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI).UseAudienceIssuer("http://issuer").Build();
+            string authUri = clientWithIssuer.GenerateAuthUri(username, STATE);
             Assert.True(Uri.IsWellFormedUriString(authUri, UriKind.Absolute));
             Assert.True(authUri.StartsWith($"https://{API_HOST}"));
         }
@@ -45,14 +46,16 @@ namespace DuoUniversal.Tests
         [TestCase("  ")]
         public void TestInvalidIssuer(string issuer)
         {
-            Assert.Throws<DuoException>(() => client.GenerateAuthUri("username", STATE, issuer));
+            Client clientWithIssuer = new ClientBuilder(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI).UseAudienceIssuer(issuer).Build();
+            Assert.Throws<DuoException>(() => clientWithIssuer.GenerateAuthUri("username", STATE));
         }
 
         [Test]
         [TestCase(null)]
         public void TestNullIssuer(string issuer)
         {
-            string authUri = client.GenerateAuthUri("username", STATE, issuer);
+            Client clientWithIssuer = new ClientBuilder(CLIENT_ID, CLIENT_SECRET, API_HOST, REDIRECT_URI).UseAudienceIssuer(issuer).Build();
+            string authUri = clientWithIssuer.GenerateAuthUri("username", STATE);
             Assert.True(Uri.IsWellFormedUriString(authUri, UriKind.Absolute));
         }
 

@@ -24,7 +24,6 @@ namespace DuoUniversal
         public const string RESPONSE_TYPE = "response_type";
         public const string SCOPE = "scope";
         public const string STATE = "state";
-        public const string ISSUER = "issuer";
 
         // Labels for standard JWT claims
         public const string AUD = JwtRegisteredClaimNames.Aud;
@@ -42,5 +41,6 @@ namespace DuoUniversal
         public const string DUO_UNAME = "duo_uname";
         public const string PREFERRED_USERNAME = "preferred_username";
         public const string USE_DUO_CODE_ATTRIBUTE = "use_duo_code_attribute";
+        public const string AUDIENCE_ISSUER = "issuer";
     }
 }

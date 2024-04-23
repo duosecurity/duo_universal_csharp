@@ -39,6 +39,8 @@ namespace DuoUniversal
 
         internal bool UseDuoCodeAttribute { get; set; } = false;
 
+        internal string AudienceIssuer { get; set; } = null;
+
         internal Client()
         {
         }
@@ -80,15 +82,14 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
         /// <param name="state">A unique identifier for the authentication attempt</param>
-        /// <param name="issuer">A specific parameter used for the Epic Hyperdrive integration to generate the samlResponse</param>
         /// <returns>A URL to redirect the user's browser to</returns>
-        public string GenerateAuthUri(string username, string state, string issuer = null)
+        public string GenerateAuthUri(string username, string state)
         {
-            ValidateAuthUriInputs(username, state, issuer);
+            ValidateAuthUriInputs(username, state, AudienceIssuer);
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
-            string authJwt = GenerateAuthJwt(username, state, authEndpoint, issuer);
+            string authJwt = GenerateAuthJwt(username, state, authEndpoint);
 
             return BuildAuthUri(authEndpoint, authJwt);
         }
@@ -187,9 +188,8 @@ namespace DuoUniversal
         /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
         /// <param name="state">A unique identifier for the authentication attempt</param>
         /// <param name="authEndpoint">The Duo endpoint URI</param>
-        /// <param name="issuer">A specific parameter used for the Epic Hyperdrive to generate the samlResponse</param>
         /// <returns>A signed JWT</returns>
-        private string GenerateAuthJwt(string username, string state, string authEndpoint, string issuer = null)
+        private string GenerateAuthJwt(string username, string state, string authEndpoint)
         {
             var additionalClaims = new Dictionary<string, string>
             {
@@ -203,9 +203,9 @@ namespace DuoUniversal
             };
 
             // issuer parameter is used for the Epic Hyperdrive integration only
-            if (issuer != null)
+            if (AudienceIssuer != null)
             {
-                additionalClaims[Labels.ISSUER] = issuer;
+                additionalClaims[Labels.AUDIENCE_ISSUER] = AudienceIssuer;
             }
 
             if (UseDuoCodeAttribute)
@@ -311,6 +311,7 @@ namespace DuoUniversal
         private bool _sslCertValidation = true;
         private X509Certificate2Collection _customRoots = null;
         private IWebProxy proxy = null;
+        private string _audienceIssuer = null;
 
 
         // For testing only
@@ -424,6 +425,18 @@ namespace DuoUniversal
         }
 
         /// <summary>
+        /// Set an audienceIssuer value to generate a SAML response for the Epic integration
+        /// </summary>
+        /// <param name="audienceIssuer">Specific parameter for the Epic integration for the SAML response generation</param>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder UseAudienceIssuer(string audienceIssuer)
+        {
+            _audienceIssuer = audienceIssuer;
+
+            return this;
+        }
+
+        /// <summary>
         /// Build the Client based on the settings provided to the Builder 
         /// </summary>
         /// <returns>The Duo Client</returns>
@@ -437,7 +450,8 @@ namespace DuoUniversal
                 ClientSecret = _clientSecret,
                 ApiHost = _apiHost,
                 RedirectUri = _redirectUri,
-                UseDuoCodeAttribute = _useDuoCodeAttribute
+                UseDuoCodeAttribute = _useDuoCodeAttribute,
+                AudienceIssuer = _audienceIssuer
             };
 
             var httpClient = BuildHttpClient();
