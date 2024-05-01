@@ -23,7 +23,7 @@ The library is available on NuGet at https://www.nuget.org/packages/DuoUniversal
 
 Include it in your .NET project with:
 
-`dotnet add package DuoUniversal --version 1.2.3`
+`dotnet add package DuoUniversal --version 1.2.4`
 
 ## TLS 1.2 and 1.3 Support
 
