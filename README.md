@@ -19,11 +19,11 @@ The example application has a dedicated README with further instructions on how 
 # Usage
 This library requires .NET Core 3.1 or higher, or .NET Framework 4.7.1 or higher
 
-The library is available on NuGet at https://www.nuget.org/packages/DuoUniversal/1.2.2
+The library is available on NuGet at https://www.nuget.org/packages/DuoUniversal/1.2.4
 
 Include it in your .NET project with:
 
-`dotnet add package DuoUniversal --version 1.2.2`
+`dotnet add package DuoUniversal --version 1.2.4`
 
 ## TLS 1.2 and 1.3 Support
 
