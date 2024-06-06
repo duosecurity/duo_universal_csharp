@@ -39,6 +39,8 @@ namespace DuoUniversal
 
         internal bool UseDuoCodeAttribute { get; set; } = false;
 
+        internal string AudienceIssuer { get; set; } = null;
+
         internal Client()
         {
         }
@@ -83,7 +85,7 @@ namespace DuoUniversal
         /// <returns>A URL to redirect the user's browser to</returns>
         public string GenerateAuthUri(string username, string state)
         {
-            ValidateAuthUriInputs(username, state);
+            ValidateAuthUriInputs(username, state, AudienceIssuer);
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
@@ -163,7 +165,7 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="username">The username to check</param>
         /// <param name="state">The state value to check</param>
-        private void ValidateAuthUriInputs(string username, string state)
+        private void ValidateAuthUriInputs(string username, string state, string issuer)
         {
             if (string.IsNullOrWhiteSpace(username))
             {
@@ -173,6 +175,10 @@ namespace DuoUniversal
             if (string.IsNullOrWhiteSpace(state) || state.Length < MINIMUM_STATE_LENGTH || state.Length > MAXIMUM_STATE_LENGTH)
             {
                 throw new DuoException($"state must be a non-empty string between {MINIMUM_STATE_LENGTH} and {MAXIMUM_STATE_LENGTH}.");
+            }
+            if (issuer != null && issuer.Trim().Length == 0)
+            {
+                throw new DuoException("issuer can be null, but cannot be an empty string");
             }
         }
 
@@ -195,6 +201,12 @@ namespace DuoUniversal
                 {Labels.STATE, state}
                 // TODO support nonce
             };
+
+            // issuer parameter is used for the Epic Hyperdrive integration only
+            if (AudienceIssuer != null)
+            {
+                additionalClaims[Labels.AUDIENCE_ISSUER] = AudienceIssuer;
+            }
 
             if (UseDuoCodeAttribute)
             {
@@ -299,6 +311,7 @@ namespace DuoUniversal
         private bool _sslCertValidation = true;
         private X509Certificate2Collection _customRoots = null;
         private IWebProxy proxy = null;
+        private string _audienceIssuer = null;
 
 
         // For testing only
@@ -412,6 +425,18 @@ namespace DuoUniversal
         }
 
         /// <summary>
+        /// Set an audienceIssuer value to generate a SAML response for the Epic integration
+        /// </summary>
+        /// <param name="audienceIssuer">Specific parameter for the Epic integration for the SAML response generation</param>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder UseAudienceIssuer(string audienceIssuer)
+        {
+            _audienceIssuer = audienceIssuer;
+
+            return this;
+        }
+
+        /// <summary>
         /// Build the Client based on the settings provided to the Builder 
         /// </summary>
         /// <returns>The Duo Client</returns>
@@ -425,7 +450,8 @@ namespace DuoUniversal
                 ClientSecret = _clientSecret,
                 ApiHost = _apiHost,
                 RedirectUri = _redirectUri,
-                UseDuoCodeAttribute = _useDuoCodeAttribute
+                UseDuoCodeAttribute = _useDuoCodeAttribute,
+                AudienceIssuer = _audienceIssuer
             };
 
             var httpClient = BuildHttpClient();
