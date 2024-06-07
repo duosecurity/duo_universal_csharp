@@ -39,7 +39,7 @@ namespace DuoUniversal
 
         internal bool UseDuoCodeAttribute { get; set; } = false;
 
-        internal string audience_for_saml_response { get; set; } = null;
+        internal string AudienceForSamlResponse { get; set; } = null;
 
         internal Client()
         {
@@ -85,7 +85,7 @@ namespace DuoUniversal
         /// <returns>A URL to redirect the user's browser to</returns>
         public string GenerateAuthUri(string username, string state)
         {
-            ValidateAuthUriInputs(username, state, audience_for_saml_response);
+            ValidateAuthUriInputs(username, state, AudienceForSamlResponse);
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
@@ -203,9 +203,9 @@ namespace DuoUniversal
             };
 
             // issuer parameter is used for the Epic Hyperdrive integration only
-            if (audience_for_saml_response != null)
+            if (AudienceForSamlResponse != null)
             {
-                additionalClaims[Labels.AUDIENCE_FOR_SAML_RESPONSE] = audience_for_saml_response;
+                additionalClaims[Labels.AUDIENCE_FOR_SAML_RESPONSE] = AudienceForSamlResponse;
             }
 
             if (UseDuoCodeAttribute)
@@ -425,13 +425,13 @@ namespace DuoUniversal
         }
 
         /// <summary>
-        /// Set an audienceIssuer value to generate a SAML response for the Epic integration
+        /// Set an audienceForSamlResponse value to generate a SAML response for the Epic integration
         /// </summary>
-        /// <param name="audienceIssuer">Specific parameter for the Epic integration for the SAML response generation</param>
+        /// <param name="audienceForSamlResponse">Specific parameter for the Epic integration for the SAML response generation</param>
         /// <returns>The ClientBuilder</returns>
-        public ClientBuilder UseAudienceForSamlResponse(string audienceIssuer)
+        public ClientBuilder UseAudienceForSamlResponse(string audienceForSamlResponse)
         {
-            _audienceForSamlResponse = audienceIssuer;
+            _audienceForSamlResponse = audienceForSamlResponse;
 
             return this;
         }
@@ -451,7 +451,7 @@ namespace DuoUniversal
                 ApiHost = _apiHost,
                 RedirectUri = _redirectUri,
                 UseDuoCodeAttribute = _useDuoCodeAttribute,
-                audience_for_saml_response = _audienceForSamlResponse
+                AudienceForSamlResponse = _audienceForSamlResponse
             };
 
             var httpClient = BuildHttpClient();
