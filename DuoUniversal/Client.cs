@@ -39,7 +39,7 @@ namespace DuoUniversal
 
         internal bool UseDuoCodeAttribute { get; set; } = false;
 
-        internal string AudienceIssuer { get; set; } = null;
+        internal string AudienceForSamlResponse { get; set; } = null;
 
         internal Client()
         {
@@ -85,7 +85,7 @@ namespace DuoUniversal
         /// <returns>A URL to redirect the user's browser to</returns>
         public string GenerateAuthUri(string username, string state)
         {
-            ValidateAuthUriInputs(username, state, AudienceIssuer);
+            ValidateAuthUriInputs(username, state, AudienceForSamlResponse);
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
@@ -203,9 +203,9 @@ namespace DuoUniversal
             };
 
             // issuer parameter is used for the Epic Hyperdrive integration only
-            if (AudienceIssuer != null)
+            if (AudienceForSamlResponse != null)
             {
-                additionalClaims[Labels.AUDIENCE_ISSUER] = AudienceIssuer;
+                additionalClaims[Labels.AUDIENCE_FOR_SAML_RESPONSE] = AudienceForSamlResponse;
             }
 
             if (UseDuoCodeAttribute)
@@ -311,7 +311,7 @@ namespace DuoUniversal
         private bool _sslCertValidation = true;
         private X509Certificate2Collection _customRoots = null;
         private IWebProxy proxy = null;
-        private string _audienceIssuer = null;
+        private string _audienceForSamlResponse = null;
 
 
         // For testing only
@@ -425,13 +425,13 @@ namespace DuoUniversal
         }
 
         /// <summary>
-        /// Set an audienceIssuer value to generate a SAML response for the Epic integration
+        /// Set an audienceForSamlResponse value to generate a SAML response for the Epic integration
         /// </summary>
-        /// <param name="audienceIssuer">Specific parameter for the Epic integration for the SAML response generation</param>
+        /// <param name="audienceForSamlResponse">Specific parameter for the Epic integration for the SAML response generation</param>
         /// <returns>The ClientBuilder</returns>
-        public ClientBuilder UseAudienceIssuer(string audienceIssuer)
+        public ClientBuilder UseAudienceForSamlResponse(string audienceForSamlResponse)
         {
-            _audienceIssuer = audienceIssuer;
+            _audienceForSamlResponse = audienceForSamlResponse;
 
             return this;
         }
@@ -451,7 +451,7 @@ namespace DuoUniversal
                 ApiHost = _apiHost,
                 RedirectUri = _redirectUri,
                 UseDuoCodeAttribute = _useDuoCodeAttribute,
-                AudienceIssuer = _audienceIssuer
+                AudienceForSamlResponse = _audienceForSamlResponse
             };
 
             var httpClient = BuildHttpClient();
