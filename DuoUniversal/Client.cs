@@ -95,14 +95,12 @@ namespace DuoUniversal
         }
 
         /// <summary>
-        /// Send the authorization code provided by Duo back to Duo in exchange for an Id Token authenticating the user and
-        /// providing details about the authentication.
+        /// Send the authorization code provided by Duo back to Duo in exchange for a full Duo response.
         /// Will raise a DuoException if the username does not match the Id Token.
         /// </summary>
         /// <param name="duoCode">The one-time use code issued by Duo</param>
-        /// <param name="username">The username expected to have authenticated with Duo</param>
-        /// <returns>An IdToken authenticating the user and describing the authentication</returns>
-        public async Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username)
+        /// <returns>A TokenResponse authenticating the user and describing the authentication</returns>
+        private async Task<TokenResponse> ExchangeAuthorizationCodeResponse(string duoCode)
         {
             string tokenEndpoint = CustomizeApiUri(TOKEN_ENDPOINT);
 
@@ -128,9 +126,21 @@ namespace DuoUniversal
                 throw new DuoException("Error exchanging the code for a 2fa token", e);
             }
 
+            return tokenResponse;
+        }
+
+        /// <summary>
+        /// Send the authorization code provided by Duo back to Duo in exchange for a full Duo response.
+        /// Will raise a DuoException if the username does not match the Id Token.
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <returns>A TokenResponse authenticating the user and describing the authentication</returns>
+        private IdToken IdTokenFromResponse(TokenResponse tokenResponse, string username)
+        {
             IdToken idToken;
             try
             {
+                string tokenEndpoint = CustomizeApiUri(TOKEN_ENDPOINT);
                 JwtUtils.ValidateJwt(tokenResponse.IdToken, ClientId, ClientSecret, tokenEndpoint);
                 idToken = Utils.DecodeToken(tokenResponse.IdToken);
             }
@@ -145,6 +155,47 @@ namespace DuoUniversal
             }
 
             return idToken;
+        }
+
+
+        /// <summary>
+        /// Send the authorization code provided by Duo back to Duo in exchange for an Id Token authenticating the user and
+        /// providing details about the authentication.
+        /// Will raise a DuoException if the username does not match the Id Token.
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <returns>An IdToken authenticating the user and describing the authentication</returns>
+        public async Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username)
+        {
+            TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
+            return IdTokenFromResponse(tokenResponse, username);
+
+        }
+
+        /// <summary>
+        /// Send the authorization code provided by Duo back to Duo in exchange for an SAML response, used for some integrations.
+        /// Will raise a DuoException if the username does not match the Id Token.
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <returns>A string authenticating the user and containing the saml response</returns>
+        public async Task<string> ExchangeAuthorizationCodeForSamlResponse(string duoCode, string username)
+        {
+            string samlResponse;
+            TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
+            //checking if the IdToken valid before assigning saml response
+            try
+            {
+                IdTokenFromResponse(tokenResponse, username);
+                samlResponse = tokenResponse.SamlResponse;
+            }
+            catch (Exception e)
+            {
+                throw new DuoException("Error while retrieveing saml response", e);
+            }
+
+            return samlResponse;
         }
 
 
