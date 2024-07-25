@@ -130,12 +130,12 @@ namespace DuoUniversal
         }
 
         /// <summary>
-        /// Send the authorization code provided by Duo back to Duo in exchange for a full Duo response.
+        /// Extracts and validates the Id Token from the response.
         /// Will raise a DuoException if the username does not match the Id Token.
         /// </summary>
         /// <param name="duoCode">The one-time use code issued by Duo</param>
         /// <returns>A TokenResponse authenticating the user and describing the authentication</returns>
-        private IdToken IdTokenFromResponse(TokenResponse tokenResponse, string username)
+        private IdToken ValidateIdTokenFromResponse(TokenResponse tokenResponse, string username)
         {
             IdToken idToken;
             try
@@ -169,7 +169,7 @@ namespace DuoUniversal
         public async Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username)
         {
             TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
-            return IdTokenFromResponse(tokenResponse, username);
+            return ValidateIdTokenFromResponse(tokenResponse, username);
 
         }
 
@@ -184,10 +184,11 @@ namespace DuoUniversal
         {
             string samlResponse;
             TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
-            //checking if the IdToken valid before assigning saml response
+            
             try
             {
-                IdTokenFromResponse(tokenResponse, username);
+                // Calling this method to validate the token, before getting the samlResponse value
+                ValidateIdTokenFromResponse(tokenResponse, username);
                 samlResponse = tokenResponse.SamlResponse;
             }
             catch (Exception e)
