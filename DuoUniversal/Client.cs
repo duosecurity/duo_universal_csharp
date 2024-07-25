@@ -184,7 +184,7 @@ namespace DuoUniversal
         {
             string samlResponse;
             TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
-            
+
             try
             {
                 // Calling this method to validate the token, before getting the samlResponse value
