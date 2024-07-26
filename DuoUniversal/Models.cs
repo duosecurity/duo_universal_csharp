@@ -38,6 +38,8 @@ namespace DuoUniversal
         public string TokenType { get; set; }
         [JsonPropertyName("expires_in")]
         public int ExpiresIn { get; set; }
+        [JsonPropertyName("saml_response")]
+        public string SamlResponse { get; set; }
     }
 
     public class IdToken

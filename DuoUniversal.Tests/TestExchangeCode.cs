@@ -32,6 +32,15 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
+        public async Task TestSamlResponseSuccess()
+        {
+            string goodResponse = GoodApiResponseWithSamlResponse();
+            var client = MakeClient(new HttpResponder(HttpStatusCode.OK, new StringContent(goodResponse)));
+            string samlResponse = await client.ExchangeAuthorizationCodeForSamlResponse(CODE, USERNAME);
+            Assert.NotNull(samlResponse);
+        }
+
+        [Test]
         [TestCase(HttpStatusCode.MovedPermanently)] // 301
         [TestCase(HttpStatusCode.BadRequest)] // 400
         [TestCase(HttpStatusCode.NotFound)] // 404
@@ -56,10 +65,19 @@ namespace DuoUniversal.Tests
         [TestCase("!@#user$%^name*&(")]
         public void TestUsernameMismatch(string username)
         {
-            // Will have the USERNAME specified above
+            // Will have the USERNAME specified in the parent class
             string goodResponse = GoodApiResponse();
             var client = MakeClient(new HttpResponder(HttpStatusCode.OK, new StringContent(goodResponse)));
             Assert.ThrowsAsync<DuoException>(async () => await client.ExchangeAuthorizationCodeFor2faResult(CODE, username));
+        }
+
+        [Test]
+        [TestCase("not username")]
+        public void TestUsernameMismatchSamlResponseFailure(string username)
+        {
+            string goodResponse = GoodApiResponseWithSamlResponse();
+            var client = MakeClient(new HttpResponder(HttpStatusCode.OK, new StringContent(goodResponse)));
+            Assert.ThrowsAsync<DuoException>(async () => await client.ExchangeAuthorizationCodeForSamlResponse(CODE, username));
         }
 
         private static string GoodApiResponse()
@@ -70,6 +88,19 @@ namespace DuoUniversal.Tests
                 {"expires_in", "1"},
                 {"id_token", CreateTokenJwt()},
                 {"token_type", "Bearer"}
+            };
+            return JsonSerializer.Serialize(responseValues);
+        }
+
+        private static string GoodApiResponseWithSamlResponse()
+        {
+            var responseValues = new Dictionary<string, string>
+            {
+                {"access_token", "access token"},
+                {"expires_in", "1"},
+                {"id_token", CreateTokenJwt()},
+                {"token_type", "Bearer"},
+                {"saml_response", "saml_response"}
             };
             return JsonSerializer.Serialize(responseValues);
         }
