@@ -76,7 +76,7 @@ namespace DuoUniversal.Tests
         [Test]
         public void TestReadCertFile()
         {
-            Assert.AreEqual(1, CertificatePinnerFactory.ReadCertsFromFile().Length);
+            Assert.AreEqual(15, CertificatePinnerFactory.ReadCertsFromFile().Length);
         }
 
         [Test]
