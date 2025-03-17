@@ -136,16 +136,8 @@ namespace DuoUniversal
             {
                 certs = reader.ReadToEnd();
             }
-
-            var filteredCerts = certs
-                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
-                .Where(line => !line.TrimStart().StartsWith("#"))
-                .ToArray();
-
-            var cleanedCerts = string.Join(Environment.NewLine, filteredCerts);
-            
             var splitOn = "-----DUO_CERT-----";
-            return cleanedCerts.Split(new string[] { splitOn }, int.MaxValue, StringSplitOptions.None);
+            return certs.Split(new string[] { splitOn }, int.MaxValue, StringSplitOptions.None);
         }
     }
 }
