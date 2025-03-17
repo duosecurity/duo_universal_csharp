@@ -28,6 +28,25 @@ namespace DuoUniversal.Tests
             chain.ChainPolicy.ExtraStore.Add(CertFromString(DUO_API_CERT_ROOT));
             chain.ChainPolicy.ExtraStore.Add(CertFromString(DUO_API_CERT_INTER));
             bool valid = chain.Build(DuoApiServerCert());
+
+            if (!valid)
+            {
+                Console.WriteLine("The certificate chain is invalid. Details:");
+
+                foreach (var element in chain.ChainElements)
+                {
+                    Console.WriteLine($"Certificate: {element.Certificate.Subject}");
+                    Console.WriteLine($"  NotBefore: {element.Certificate.NotBefore}");
+                    Console.WriteLine($"  NotAfter: {element.Certificate.NotAfter}");
+
+                    foreach (var status in element.ChainElementStatus)
+                    {
+                        Console.WriteLine($"  Status: {status.Status}");
+                        Console.WriteLine($"  Information: {status.StatusInformation}");
+                    }
+                }
+            }
+
             Assert.True(valid);
             return chain;
         }
