@@ -87,5 +87,7 @@ jobs:
       - name: Retain signed binary
         uses: actions/upload-artifact@v4
         with:
-          path: DuoUniversal*.nupkg
+          path: |
+            authenticode.cer
+            DuoUniversal*.nupkg
           retention-days: 1
