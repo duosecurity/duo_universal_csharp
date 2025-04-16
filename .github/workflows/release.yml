@@ -1,7 +1,8 @@
 ---
-on:
-  pull_request:
+name: Build and Sign a release
 
+on:
+  workflow_dispatch:
 
 permissions: {}
 
@@ -12,10 +13,16 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Create nuget package
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "6.0.100"
+
+      - name: Create NuGet package
         run: dotnet pack -c Release -o ../out
         working-directory: DuoUniversal
-      - name: Artifact the nupkg
+
+      - name: Artifact the .nupkg
         uses: actions/upload-artifact@v4
         with:
           name: nupkg
@@ -35,7 +42,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-
 
       # NuGet doesn't support signature via signtool.exe, instead using
       # nuget sign or dotnet nuget sign. These commands do not support
@@ -78,8 +84,8 @@ jobs:
           CERT_FILE: authenticode.cer
           KEY_ID: ${{ secrets.AUTHENTICODE_KMS_KEY_ID }}
 
-      # - name: Retain signed binary
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     path: DuoUniversal*.nupkg
-      #     retention-days: 1
+      - name: Retain signed binary
+        uses: actions/upload-artifact@v4
+        with:
+          path: DuoUniversal*.nupkg
+          retention-days: 1
