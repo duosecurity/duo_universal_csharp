@@ -73,7 +73,7 @@ jobs:
 
       - name: Sign nupkg
         shell: cmd
-        run: jsign --storetype AWS --keystore us-west-2 --alias $env:KEY_ID --certfile $env:CERT_FILE DuoUniversal*.nupkg
+        run: jsign --storetype AWS --keystore us-west-2 --alias %KEY_ID% --certfile %CERT_FILE% DuoUniversal*.nupkg
         env:
           CERT_FILE: authenticode.cer
           KEY_ID: ${{ secrets.AUTHENTICODE_KMS_KEY_ID }}
