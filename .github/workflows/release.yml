@@ -59,7 +59,7 @@ jobs:
         run: |
           # Pull a configured certificate parameter and write it to a specified location
           $b64 = aws ssm get-parameter `
-          --name $env:AUTHENTICODE_CERTIFICATE_PARAMETER
+          --name $env:AUTHENTICODE_CERTIFICATE_PARAMETER `
           --with-decryption `
           --query "Parameter.Value" `
           --output text
