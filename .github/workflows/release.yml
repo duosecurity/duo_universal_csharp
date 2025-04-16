@@ -1,7 +1,7 @@
 ---
 on:
-  pull-request:
+  pull_request:
 
 jobs:
-  - name: Test signing
+  release:
     uses: cisco-sbg/ZT-duo_universal_csharp_ci/.github/workflows/sign_and_package.yml@5c673525a3fc07bfb93bd4f18304fb66763525d7
