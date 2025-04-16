@@ -71,6 +71,7 @@ jobs:
           CERT_FILE: authenticode.cer
 
       - name: Sign nupkg
+        shell: cmd
         run: >
           jsign
             --storetype AWS
