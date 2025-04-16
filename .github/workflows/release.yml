@@ -6,15 +6,6 @@ on:
 permissions: {}
 
 jobs:
-  test:
-    runs-on: windows-2022
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - name: Test C#
-        run: dotnet test
-
   package:
     runs-on: windows-2022
     permissions:
@@ -34,6 +25,7 @@ jobs:
   sign:
     runs-on: windows-2022
     environment: authenticode-signing
+    needs: package
     permissions:
       contents: read
       id-token: write
