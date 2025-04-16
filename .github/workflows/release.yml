@@ -30,6 +30,24 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 11
+
+
+      # NuGet doesn't support signature via signtool.exe, instead using
+      # nuget sign or dotnet nuget sign. These commands do not support
+      # detached signing. So, we have to use a different tool, jsign.
+      - name: Install jsign
+        run: choco install --ignore-dependencies jsign
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkg
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
         with:
@@ -37,16 +55,7 @@ jobs:
           role-session-name: jsign-kms
           aws-region: us-west-2
 
-      # NuGet doesn't support signature via signtool.exe, instead using
-      # nuget sign or dotnet nuget sign. These commands do not support
-      # detached signing. So, we have to use a different tool, jsign.
-      - name: Install jsign
-        run: choco install jsign
 
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: nupkg
       - name: Stage authenticode public certificate
         run: |
           # Pull a configured certificate parameter and write it to a specified location
