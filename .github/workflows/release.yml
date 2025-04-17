@@ -1,0 +1,93 @@
+---
+name: Build and Sign a release
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  package:
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "6.0.100"
+
+      - name: Create NuGet package
+        run: dotnet pack -c Release -o ../out
+        working-directory: DuoUniversal
+
+      - name: Artifact the .nupkg
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: out/DuoUniversal*.nupkg
+          retention-days: 1
+
+  sign:
+    runs-on: windows-2022
+    environment: authenticode-signing
+    needs: package
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 11
+
+      # NuGet doesn't support signature via signtool.exe, instead using
+      # nuget sign or dotnet nuget sign. These commands do not support
+      # detached signing. So, we have to use a different tool, jsign.
+      - name: Install jsign
+        run: choco install --ignore-dependencies jsign
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkg
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+        with:
+          role-to-assume: ${{ secrets.AUTHENTICODE_ROLE_ARN }}
+          role-session-name: jsign-kms
+          aws-region: us-west-2
+
+
+      - name: Stage authenticode public certificate
+        run: |
+          # Pull a configured certificate parameter and write it to a specified location
+          $b64 = aws ssm get-parameter `
+          --name $env:AUTHENTICODE_CERTIFICATE_PARAMETER `
+          --with-decryption `
+          --query "Parameter.Value" `
+          --output text
+          $bytes = [Convert]::FromBase64String($b64)
+          [IO.File]::WriteAllBytes($env:CERT_FILE, $bytes)
+          [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromCertFile($env:CERT_FILE) | Select-Object "*"
+        env:
+          AUTHENTICODE_CERTIFICATE_PARAMETER: ${{ secrets.AUTHENTICODE_CERTIFICATE_PARAMETER }}
+          CERT_FILE: authenticode.cer
+
+      - name: Sign nupkg
+        shell: cmd
+        run: jsign --storetype AWS --keystore us-west-2 --alias %KEY_ID% --certfile %CERT_FILE% DuoUniversal*.nupkg
+        env:
+          CERT_FILE: authenticode.cer
+          KEY_ID: ${{ secrets.AUTHENTICODE_KMS_KEY_ID }}
+
+      - name: Retain signed binary
+        uses: actions/upload-artifact@v4
+        with:
+          path: |
+            authenticode.cer
+            DuoUniversal*.nupkg
+          retention-days: 1
