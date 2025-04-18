@@ -149,7 +149,7 @@ namespace DuoUniversal
                 throw new DuoException("Error while parsing the token api response", e);
             }
 
-            if (idToken.Username != username)
+            if (!string.Equals(idToken.Username, username, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new DuoException("The specified username does not match the username from Duo");
             }
