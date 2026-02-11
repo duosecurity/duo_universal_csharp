@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
+using DuoUniversal.Example.Data;
 
 namespace DuoUniversal.Example
 {
@@ -35,11 +37,17 @@ namespace DuoUniversal.Example
 
             }
             );
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+
             services.AddRazorPages();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppDbContext dbContext)
         {
+            // Create and seed database
+            SeedData.Initialize(dbContext);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -73,10 +81,10 @@ namespace DuoUniversal.Example
 
         public DuoClientProvider(IConfiguration config)
         {
-            ClientId = config.GetValue<string>("Client ID");
-            ClientSecret = config.GetValue<string>("Client Secret");
-            ApiHost = config.GetValue<string>("API Host");
-            RedirectUri = config.GetValue<string>("Redirect URI");
+            ClientId = config["Duo:ClientId"] ?? config["Client ID"];
+            ClientSecret = config["Duo:ClientSecret"] ?? config["Client Secret"];
+            ApiHost = config["Duo:ApiHost"] ?? config["API Host"];
+            RedirectUri = config["Duo:RedirectUri"] ?? config["Redirect URI"];
         }
 
         public Client GetDuoClient()

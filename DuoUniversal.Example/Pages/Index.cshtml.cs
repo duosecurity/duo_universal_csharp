@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using DuoUniversal.Example.Data;
 
 namespace DuoUniversal.Example.Pages
 {
@@ -23,10 +25,12 @@ namespace DuoUniversal.Example.Pages
 
 
         private readonly IDuoClientProvider _duoClientProvider;
+        private readonly AppDbContext _context;
 
-        public IndexModel(IDuoClientProvider duoClientProvider)
+        public IndexModel(IDuoClientProvider duoClientProvider, AppDbContext context)
         {
             _duoClientProvider = duoClientProvider;
+            _context = context;
         }
 
         public void OnGet()
@@ -37,11 +41,19 @@ namespace DuoUniversal.Example.Pages
         public async Task<IActionResult> OnPost(string username, string password)
         {
             // Internal Authentication Step (First Factor)
-            // For demonstration, we accept any password that is not empty.
-            // In a real application, you would validate against your database here.
-            if (string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                // If password is missing, stay on page (could add error message)
+                 ModelState.AddModelError(string.Empty, "Username and password are required.");
+                 return Page();
+            }
+
+            // Verify user against database
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null || user.Password != password)
+            {
+                // Invalid credentials
+                ModelState.AddModelError(string.Empty, "Invalid username or password.");
                 return Page();
             }
 
