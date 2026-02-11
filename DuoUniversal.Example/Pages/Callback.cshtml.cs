@@ -21,6 +21,7 @@ namespace DuoUniversal.Example.Pages
         private readonly IDuoClientProvider _duoClientProvider;
 
         public string AuthResponse { get; set; }
+        public IdToken DuoToken { get; set; }
 
         public CallbackModel(IDuoClientProvider duoClientProvider)
         {
@@ -70,6 +71,7 @@ namespace DuoUniversal.Example.Pages
                 WriteIndented = true
             };
             AuthResponse = JsonSerializer.Serialize(token, options);
+            DuoToken = token;
             return Page();
         }
     }

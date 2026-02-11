@@ -34,8 +34,17 @@ namespace DuoUniversal.Example.Pages
 
         }
 
-        public async Task<IActionResult> OnPost(string username)
+        public async Task<IActionResult> OnPost(string username, string password)
         {
+            // Internal Authentication Step (First Factor)
+            // For demonstration, we accept any password that is not empty.
+            // In a real application, you would validate against your database here.
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                // If password is missing, stay on page (could add error message)
+                return Page();
+            }
+
             // Initiate the Duo authentication for a specific username
 
             // Get a Duo client

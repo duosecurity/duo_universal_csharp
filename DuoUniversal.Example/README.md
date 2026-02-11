@@ -1,3 +1,9 @@
+Credentiale ---->
+
+client ID : DIJAYTMEB36S4FIOXI7F
+client secret : Pp9UJnNA7CQ10wlP2CLyWTHW8n9KH6Xjefa1KQJu
+API hostname : api-8905b780.duosecurity.com
+
 # Duo Universal Prompt C# Sample Application
 
 This example application demonstrates how to integrate the Duo Universal C# client into a simple ASP.NET web application.

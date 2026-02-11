@@ -8,10 +8,79 @@
     <div class="logo">
         <a href="/"><img src=~/images/logo.png></a>
     </div>
-    <div class="auth-resp">
-        <h3><b>Auth Response:</b></h3>
+    <div class="text-center mb-4">
+        <h1 class="display-4">Welcome, @Model.DuoToken?.Username!</h1>
+        <p class="lead text-success">Authentication Successful</p>
     </div>
-    <div class="success">
-        <pre class="language.json"><code class="language-json">@Model.AuthResponse</code></pre>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">User Metadata</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Username</dt>
+                <dd class="col-sm-9">@Model.DuoToken?.Username</dd>
+
+                <dt class="col-sm-3">Auth Time</dt>
+                <dd class="col-sm-9">@DateTimeOffset.FromUnixTimeSeconds(Model.DuoToken?.AuthTime ?? 0).LocalDateTime</dd>
+
+                <dt class="col-sm-3">Result</dt>
+                <dd class="col-sm-9">@Model.DuoToken?.AuthResult?.Result</dd>
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">@Model.DuoToken?.AuthResult?.Status</dd>
+                
+                <dt class="col-sm-3">Status Message</dt>
+                <dd class="col-sm-9">@Model.DuoToken?.AuthResult?.StatusMsg</dd>
+            </dl>
+        </div>
+    </div>
+
+    @if (Model.DuoToken?.AuthContext != null)
+    {
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Context Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Factor</dt>
+                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.Factor</dd>
+
+                    <dt class="col-sm-3">Event Type</dt>
+                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.EventType</dd>
+
+                     <dt class="col-sm-3">IP Address</dt>
+                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.AccessDevice?.IpAddress</dd>
+
+                    <dt class="col-sm-3">Location</dt>
+                    <dd class="col-sm-9">
+                        @Model.DuoToken.AuthContext.AccessDevice?.Location?.City, 
+                        @Model.DuoToken.AuthContext.AccessDevice?.Location?.State, 
+                        @Model.DuoToken.AuthContext.AccessDevice?.Location?.Country
+                    </dd>
+                    
+                    <dt class="col-sm-3">Browser</dt>
+                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.AccessDevice?.Browser @Model.DuoToken.AuthContext.AccessDevice?.BrowserVersion</dd>
+
+                    <dt class="col-sm-3">OS</dt>
+                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.AccessDevice?.OperatingSystem @Model.DuoToken.AuthContext.AccessDevice?.OperatingSystemVersion</dd>
+                </dl>
+            </div>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header">
+            <a class="btn btn-link" data-toggle="collapse" href="#collapseRawJson" role="button" aria-expanded="false" aria-controls="collapseRawJson">
+                View Raw JSON Response
+            </a>
+        </div>
+        <div class="collapse" id="collapseRawJson">
+            <div class="card-body">
+                <pre class="language.json"><code class="language-json">@Model.AuthResponse</code></pre>
+            </div>
+        </div>
     </div>
 </div>
