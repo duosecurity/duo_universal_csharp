@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using DuoUniversal.Example.Data;
 
@@ -29,6 +31,13 @@ namespace DuoUniversal.Example
 
             // This is one possible way to make a Duo client factory available, there are many other options.
             services.AddSingleton<IDuoClientProvider, DuoClientProvider>();
+
+            // Persist keys to filesystem so session survives app restarts
+            var keysPath = Path.Combine(Directory.GetCurrentDirectory(), "keys");
+            if (!Directory.Exists(keysPath)) Directory.CreateDirectory(keysPath);
+            
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
