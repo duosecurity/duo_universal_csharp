@@ -81,6 +81,39 @@
         .footer strong {
             color: #a98946;
         }
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+            text-align: center;
+            width: 100%;
+        }
+        .watermark img {
+            max-width: 600px;
+            width: 80%;
+            height: auto;
+        }
+        .watermark-text {
+            font-size: 8rem;
+            font-weight: 900;
+            color: #2c2c2c;
+            display: block;
+            margin-top: -20px;
+        }
+        .demo-badge {
+            margin-top: 30px;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .demo-badge strong {
+            color: #a98946;
+        }
         @@media (max-width: 768px) {
             .success-card {
                 padding: 30px 20px;
@@ -99,6 +132,11 @@
         <img src="/images/logo-versus-bank.png" alt="Versus Bank Logo">
     </div>
 
+    <div class="watermark">
+        <img src="/images/Blue-Logo-H.png" alt="ITEXPERTS4AFRICA Logo">
+        <span class="watermark-text">DÉMO</span>
+    </div>
+
     <div class="content">
         <div class="success-card">
             <h1>Bienvenue, @Model.DuoToken?.Username!</h1>
@@ -111,6 +149,11 @@
                 Votre authentification à deux facteurs a été validée avec succès.<br>
                 Vous pouvez maintenant fermer cette fenêtre et retourner à votre application.
             </p>
+
+            <div class="demo-badge">
+                <img src="/images/Blue-Logo-H.png" alt="ITEXPERTS4AFRICA Logo" style="max-height: 40px; display: block; margin: 0 auto 10px; opacity: 0.8;">
+                Démonstration réalisée par <strong>ITEXPERTS4AFRICA</strong> pour <strong>VERSUS BANK</strong>
+            </div>
         </div>
     </div>
 
