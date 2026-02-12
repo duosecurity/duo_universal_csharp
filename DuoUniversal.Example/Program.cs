@@ -14,40 +14,62 @@ namespace DuoUniversal.Example
     {
         public static void Main(string[] args)
         {
-            LoadEnvFile();
             CreateHostBuilder(args).Build().Run();
-        }
-
-        private static void LoadEnvFile()
-        {
-            var envFile = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), ".env");
-            if (System.IO.File.Exists(envFile))
-            {
-                foreach (var line in System.IO.File.ReadAllLines(envFile))
-                {
-                    var parts = line.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 2)
-                    {
-                        var key = parts[0].Trim();
-                        var value = parts[1].Trim();
-
-                        // Map DUO_ prefixes to Duo__ for ASP.NET naming convention
-                        if (key.StartsWith("DUO_", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var normalizedKey = "Duo__" + string.Join("", key.Substring(4).Split('_').Select(w => char.ToUpper(w[0]) + w.Substring(1).ToLower()));
-                            Environment.SetEnvironmentVariable(normalizedKey, value);
-                        }
-                        else
-                        {
-                            Environment.SetEnvironmentVariable(key, value);
-                        }
-                    }
-                }
-            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, configBuilder) =>
+                {
+                    // Check local directory and parent directory for .env
+                    string envPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), ".env");
+                    if (!System.IO.File.Exists(envPath))
+                    {
+                        envPath = System.IO.Path.Combine(System.IO.Directory.GetParent(System.IO.Directory.GetCurrentDirectory())?.FullName ?? "", ".env");
+                    }
+
+                    if (System.IO.File.Exists(envPath))
+                    {
+                        Console.WriteLine($"[DEBUG] Loading configuration from: {envPath}");
+                        var settings = new System.Collections.Generic.Dictionary<string, string>();
+                        
+                        foreach (var line in System.IO.File.ReadAllLines(envPath))
+                        {
+                            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
+
+                            var parts = line.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length == 2)
+                            {
+                                var key = parts[0].Trim();
+                                var value = parts[1].Trim();
+
+                                // Map keys: DUO_CLIENT_ID -> Duo:ClientId
+                                if (key.StartsWith("DUO_", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var suffix = key.Substring(4);
+                                    var words = suffix.Split('_');
+                                    for (int i = 0; i < words.Length; i++)
+                                    {
+                                        if (words[i].Length > 0)
+                                            words[i] = char.ToUpper(words[i][0]) + words[i].Substring(1).ToLower();
+                                    }
+                                    var normalizedKey = "Duo:" + string.Join("", words);
+                                    settings[normalizedKey] = value;
+                                    Console.WriteLine($"[DEBUG] Mapped {key} to {normalizedKey}");
+                                }
+                                else
+                                {
+                                    settings[key] = value;
+                                }
+                            }
+                        }
+                        configBuilder.AddInMemoryCollection(settings);
+                    }
+                    else
+                    {
+                        Console.WriteLine("[DEBUG] No .env file found.");
+                    }
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
