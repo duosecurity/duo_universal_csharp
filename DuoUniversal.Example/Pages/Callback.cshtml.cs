@@ -19,13 +19,15 @@ namespace DuoUniversal.Example.Pages
     public class CallbackModel : PageModel
     {
         private readonly IDuoClientProvider _duoClientProvider;
+        private readonly Microsoft.Extensions.Logging.ILogger<CallbackModel> _logger;
 
         public string AuthResponse { get; set; }
         public IdToken DuoToken { get; set; }
 
-        public CallbackModel(IDuoClientProvider duoClientProvider)
+        public CallbackModel(IDuoClientProvider duoClientProvider, Microsoft.Extensions.Logging.ILogger<CallbackModel> logger)
         {
             _duoClientProvider = duoClientProvider;
+            _logger = logger;
         }
 
         public async Task<IActionResult> OnGet(string state, string code)
@@ -51,6 +53,7 @@ namespace DuoUniversal.Example.Pages
             // If either is missing, something is wrong.
             if (string.IsNullOrEmpty(sessionState) || string.IsNullOrEmpty(sessionUsername))
             {
+                _logger.LogError("Session state or username missing. State: {state}, Code: {code}, Request: {url}", state, code, Request.Path + Request.QueryString);
                 throw new DuoException("State or username were missing from your session");
             }
 
