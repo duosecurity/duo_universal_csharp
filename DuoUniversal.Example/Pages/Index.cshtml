@@ -1,24 +1,354 @@
-﻿@* SPDX-FileCopyrightText: 2022 Cisco Systems, Inc. and/or its affiliates *@
-@* SPDX-License-Identifier: BSD-3-Clause *@
-
-@page
+﻿@page
 @model IndexModel
+@{
+    Layout = null;
+}
 
-<div class="content">
-    <div class="logo">
-        <img src="~/images/logo.png">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Sécurisée | IT Experts 4 Africa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background elements */
+        .bg-decoration {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .bg-decoration:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: #f1ca13;
+            top: -150px;
+            left: -150px;
+            animation-delay: 0s;
+        }
+        
+        .bg-decoration:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: #ff6b35;
+            bottom: -100px;
+            right: -100px;
+            animation-delay: 3s;
+        }
+        
+        .bg-decoration:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            background: #f1ca13;
+            top: 50%;
+            left: 10%;
+            animation-delay: 6s;
+        }
+
+        @@keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        /* Branding section */
+        .branding {
+            color: white;
+        }
+
+        .branding h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f1ca13 0%, #ff6b35 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .branding p {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #f1ca13;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        /* Login form */
+        .login-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo-section img {
+            height: 70px;
+            margin-bottom: 15px;
+        }
+
+        .logo-section h2 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .logo-section p {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-group input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #f1ca13;
+            box-shadow: 0 0 0 3px rgba(241, 202, 19, 0.15);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #fca5a5;
+            font-size: 0.9rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #f1ca13 0%, #ff6b35 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(241, 202, 19, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(241, 202, 19, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .forgot-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .forgot-link a {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .forgot-link a:hover {
+            color: #f1ca13;
+        }
+
+        /* Responsive design */
+        @@media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .branding {
+                text-align: center;
+            }
+            
+            .branding h1 {
+                font-size: 3rem;
+            }
+            
+            .stats {
+                justify-content: center;
+            }
+        }
+
+        @@media (max-width: 640px) {
+            .login-card {
+                padding: 35px 25px;
+            }
+            
+            .branding h1 {
+                font-size: 2.5rem;
+            }
+            
+            .bg-decoration {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-decoration"></div>
+    <div class="bg-decoration"></div>
+    <div class="bg-decoration"></div>
+
+    <div class="container">
+        <!-- Branding Section -->
+        <div class="branding">
+            <h1>IT Experts<br>4 Africa</h1>
+            <p>
+                Accélérez la croissance et la compétitivité de votre entreprise grâce à notre expertise. 
+                Connectez-vous pour accéder à votre espace sécurisé avec l'authentification à deux facteurs.
+            </p>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number">100+</span>
+                    <span class="stat-label">Clients satisfaits</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">Projets réalisés</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Form -->
+        <div>
+            <div class="login-card">
+                <div class="logo-section">
+                    <img src="/images/it-experts-logo.png" alt="IT Experts 4 Africa">
+                    <h2>Connexion</h2>
+                    <p>Entrez vos identifiants pour continuer</p>
+                </div>
+
+                @if (!ModelState.IsValid)
+                {
+                    <div class="error-message">
+                        @Html.ValidationSummary(false, "", new { @class = "" })
+                    </div>
+                }
+
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="username">Nom d'utilisateur</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Votre nom d'utilisateur" 
+                            required 
+                            autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Mot de passe</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="••••••••" 
+                            required>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        Se connecter avec Duo 2FA
+                    </button>
+                </form>
+
+                <div class="forgot-link">
+                    <a href="#">Mot de passe oublié ?</a>
+                </div>
+            </div>
+        </div>
     </div>
-    <form class="input-form" method="POST">
-        <div class="form-group">
-            <label for="exampleInputEmail1">Name:</label>
-            <input type="text" name="username" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-        </div>
-        <div class="form-group">
-            <label for="exampleInputPassword1">Password:</label>
-            <input type="password" name="password" class="form-control" id="exampleInputPassword1">
-        </div>
-        <div class="buttons">
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-    </form>
-</div>
+</body>
+</html>

@@ -1,86 +1,121 @@
-@* SPDX-FileCopyrightText: 2022 Cisco Systems, Inc. and/or its affiliates *@
-@* SPDX-License-Identifier: BSD-3-Clause *@
-
 @page "/duo_callback"
-@model CallbackModel
+@model DuoUniversal.Example.Pages.CallbackModel
+@{
+    Layout = null;
+}
 
-<div class="content">
-    <div class="logo">
-        <a href="/"><img src=~/images/logo.png></a>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentification Réussie - Versus Bank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(135deg, #a98946 0%, #8b7238 100%);
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header img {
+            max-width: 280px;
+            height: auto;
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .success-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+        }
+        .success-card h1 {
+            color: #a98946;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .success-image {
+            margin: 30px 0;
+        }
+        .success-image img {
+            max-width: 100%;
+            height: auto;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+        .message {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-top: 25px;
+        }
+        .footer {
+            background: #2c2c2c;
+            color: #ccc;
+            padding: 25px 20px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        .footer strong {
+            color: #a98946;
+        }
+        @@media (max-width: 768px) {
+            .success-card {
+                padding: 30px 20px;
+            }
+            .success-card h1 {
+                font-size: 1.8rem;
+            }
+            .header img {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/images/logo-versus-bank.png" alt="Versus Bank Logo">
     </div>
-    <div class="text-center mb-4">
-        <h1 class="display-4">Welcome, @Model.DuoToken?.Username!</h1>
-        <p class="lead text-success">Authentication Successful</p>
-    </div>
 
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">User Metadata</h5>
-        </div>
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">Username</dt>
-                <dd class="col-sm-9">@Model.DuoToken?.Username</dd>
-
-                <dt class="col-sm-3">Auth Time</dt>
-                <dd class="col-sm-9">@DateTimeOffset.FromUnixTimeSeconds(Model.DuoToken?.AuthTime ?? 0).LocalDateTime</dd>
-
-                <dt class="col-sm-3">Result</dt>
-                <dd class="col-sm-9">@Model.DuoToken?.AuthResult?.Result</dd>
-
-                <dt class="col-sm-3">Status</dt>
-                <dd class="col-sm-9">@Model.DuoToken?.AuthResult?.Status</dd>
-                
-                <dt class="col-sm-3">Status Message</dt>
-                <dd class="col-sm-9">@Model.DuoToken?.AuthResult?.StatusMsg</dd>
-            </dl>
-        </div>
-    </div>
-
-    @if (Model.DuoToken?.AuthContext != null)
-    {
-        <div class="card mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Context Information</h5>
+    <div class="content">
+        <div class="success-card">
+            <h1>Bienvenue, @Model.DuoToken?.Username!</h1>
+            
+            <div class="success-image">
+                <img src="/images/popo-up-VERSUS-NET-PRO-1.png" alt="Authentification Réussie">
             </div>
-            <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-3">Factor</dt>
-                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.Factor</dd>
 
-                    <dt class="col-sm-3">Event Type</dt>
-                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.EventType</dd>
-
-                     <dt class="col-sm-3">IP Address</dt>
-                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.AccessDevice?.IpAddress</dd>
-
-                    <dt class="col-sm-3">Location</dt>
-                    <dd class="col-sm-9">
-                        @Model.DuoToken.AuthContext.AccessDevice?.Location?.City, 
-                        @Model.DuoToken.AuthContext.AccessDevice?.Location?.State, 
-                        @Model.DuoToken.AuthContext.AccessDevice?.Location?.Country
-                    </dd>
-                    
-                    <dt class="col-sm-3">Browser</dt>
-                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.AccessDevice?.Browser @Model.DuoToken.AuthContext.AccessDevice?.BrowserVersion</dd>
-
-                    <dt class="col-sm-3">OS</dt>
-                    <dd class="col-sm-9">@Model.DuoToken.AuthContext.AccessDevice?.OperatingSystem @Model.DuoToken.AuthContext.AccessDevice?.OperatingSystemVersion</dd>
-                </dl>
-            </div>
-        </div>
-    }
-
-    <div class="card">
-        <div class="card-header">
-            <a class="btn btn-link" data-toggle="collapse" href="#collapseRawJson" role="button" aria-expanded="false" aria-controls="collapseRawJson">
-                View Raw JSON Response
-            </a>
-        </div>
-        <div class="collapse" id="collapseRawJson">
-            <div class="card-body">
-                <pre class="language.json"><code class="language-json">@Model.AuthResponse</code></pre>
-            </div>
+            <p class="message">
+                Votre authentification à deux facteurs a été validée avec succès.<br>
+                Vous pouvez maintenant fermer cette fenêtre et retourner à votre application.
+            </p>
         </div>
     </div>
-</div>
+
+    <div class="footer">
+        &copy; @DateTime.Now.Year <strong>Versus Bank</strong> - Notre expertise fait la différence
+    </div>
+</body>
+</html>

@@ -8,16 +8,23 @@ namespace DuoUniversal.Example.Data
         {
             context.Database.EnsureCreated();
 
-            if (context.Users.Any())
+            if (!context.Users.Any(u => u.Username == "duouser"))
             {
-                return;   // DB has been seeded
+                context.Users.Add(new User
+                {
+                    Username = "duouser",
+                    Password = "password123"
+                });
             }
 
-            context.Users.Add(new User
+            if (!context.Users.Any(u => u.Username == "Desktop_versus"))
             {
-                Username = "duouser",
-                Password = "password123" // In production, hash this!
-            });
+                context.Users.Add(new User
+                {
+                    Username = "Desktop_versus",
+                    Password = "password123"
+                });
+            }
 
             context.SaveChanges();
         }

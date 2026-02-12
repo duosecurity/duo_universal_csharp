@@ -1,56 +1,79 @@
-body, input {
-  font: 17px arial, sans-serif;
-}
-
-.content,
-.input-form {
+body {
+  font: 17px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-image: url('../images/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  margin: 0;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
 }
 
+.content {
+  background: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+  backdrop-filter: blur(10px); /* Glassmorphism blur */
+  -webkit-backdrop-filter: blur(10px);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.logo {
+    margin-bottom: 20px;
+}
+
 img {
-  padding: 20px; 
-  height: 84px;
-  margin-top: 40px;
+  max-width: 100%;
+  height: auto;
+  max-height: 80px;
+}
+
+.input-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    width: 100%;
 }
 
 input {
-  width: 250px;
+  width: 100%;
   padding: 12px;
-  margin-top: 10px;
-}
-
-input[type=text] {
-  margin-left: 44px;
-}
-
-input[type=password] {
-  margin-left: 10px;
-}
-
-h3 {
-  margin-top: 23px;
-}
-
-pre.language-json {
-  font-size: 20px;
-}
-
-div.success {
-  margin-top: 20px;
-}
-
-pre.auth-token {
-  display: inline-block;
-  text-align: left;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Fix padding issues */
 }
 
 button {
-  background-color: #6BBF4E;
+  width: 100%;
+  background-color: #007bff; /* Blue to match logo? */
   color: white;
   border: none;
-  padding: 9px 18px;
-  margin-top: 17px;
+  padding: 12px;
+  margin-top: 10px;
   border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Remove old specific margins */
+input[type=text], input[type=password] {
+    margin-left: 0;
 }
