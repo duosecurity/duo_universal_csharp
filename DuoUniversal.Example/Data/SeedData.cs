@@ -26,7 +26,7 @@ namespace DuoUniversal.Example.Data
                 });
             }
 
-            for (int i = 1; i <= 5; i++)
+            for (int i = 1; i <= 15; i++)
             {
                 string username = $"user{i}";
                 if (!context.Users.Any(u => u.Username == username))
