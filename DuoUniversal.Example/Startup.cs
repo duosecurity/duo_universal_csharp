@@ -24,9 +24,11 @@ namespace DuoUniversal.Example
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Bind Duo configuration from appsettings.json or Environment Variables
+            services.Configure<DuoConfig>(Configuration.GetSection("Duo"));
+
             // This is one possible way to make a Duo client factory available, there are many other options.
-            var duoClientProvider = new DuoClientProvider(Configuration);
-            services.AddSingleton<IDuoClientProvider>(duoClientProvider);
+            services.AddSingleton<IDuoClientProvider, DuoClientProvider>();
 
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
@@ -75,39 +77,33 @@ namespace DuoUniversal.Example
 
     internal class DuoClientProvider : IDuoClientProvider
     {
-        private string ClientId { get; }
-        private string ClientSecret { get; }
-        private string ApiHost { get; }
-        private string RedirectUri { get; }
+        private readonly DuoConfig _config;
 
-        public DuoClientProvider(IConfiguration config)
+        public DuoClientProvider(Microsoft.Extensions.Options.IOptions<DuoConfig> duoConfig)
         {
-            ClientId = config["Duo:ClientId"] ?? config["Client ID"];
-            ClientSecret = config["Duo:ClientSecret"] ?? config["Client Secret"];
-            ApiHost = config["Duo:ApiHost"] ?? config["API Host"];
-            RedirectUri = config["Duo:RedirectUri"] ?? config["Redirect URI"];
+            _config = duoConfig.Value;
         }
 
         public Client GetDuoClient()
         {
-            if (string.IsNullOrWhiteSpace(ClientId))
+            if (string.IsNullOrWhiteSpace(_config.ClientId))
             {
-                throw new DuoException("A 'Client ID' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:ClientId' configuration value is required (check .env or appsettings.json).");
             }
-            if (string.IsNullOrWhiteSpace(ClientSecret))
+            if (string.IsNullOrWhiteSpace(_config.ClientSecret))
             {
-                throw new DuoException("A 'Client Secret' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:ClientSecret' configuration value is required.");
             }
-            if (string.IsNullOrWhiteSpace(ApiHost))
+            if (string.IsNullOrWhiteSpace(_config.ApiHost))
             {
-                throw new DuoException("An 'Api Host' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:ApiHost' configuration value is required.");
             }
-            if (string.IsNullOrWhiteSpace(RedirectUri))
+            if (string.IsNullOrWhiteSpace(_config.RedirectUri))
             {
-                throw new DuoException("A 'Redirect URI' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:RedirectUri' configuration value is required.");
             }
 
-            return new ClientBuilder(ClientId, ClientSecret, ApiHost, RedirectUri).Build();
+            return new ClientBuilder(_config.ClientId, _config.ClientSecret, _config.ApiHost, _config.RedirectUri).Build();
         }
     }
 }
