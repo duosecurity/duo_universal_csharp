@@ -26,6 +26,19 @@ namespace DuoUniversal.Example.Data
                 });
             }
 
+            for (int i = 1; i <= 5; i++)
+            {
+                string username = $"user{i}";
+                if (!context.Users.Any(u => u.Username == username))
+                {
+                    context.Users.Add(new User
+                    {
+                        Username = username,
+                        Password = "password123"
+                    });
+                }
+            }
+
             context.SaveChanges();
         }
     }
