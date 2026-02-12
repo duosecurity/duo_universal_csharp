@@ -36,8 +36,11 @@ namespace DuoUniversal.Example
                 options.IdleTimeout = TimeSpan.FromMinutes(60);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.Cookie.Name = ".Duo.Session";
+                // Lax is more compatible with IP addresses and untrusted certificates
+                // It allows the cookie to be sent during the top-level GET redirect from Duo
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
             }
             );
             services.AddDbContext<AppDbContext>(options =>
