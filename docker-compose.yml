@@ -1,0 +1,15 @@
+services:
+  duo-example:
+    build: .
+    ports:
+      - "5000:8080"
+    environment:
+      # These environment variables override appsettings.json
+      # Ensure these match your Duo Admin Panel configuration
+      - Duo__ClientId=DIJAYTMEB36S4FIOXI7F
+      - Duo__ClientSecret=Pp9UJnNA7CQ10wlP2CLyWTHW8n9KH6Xjefa1KQJu
+      - Duo__ApiHost=api-8905b780.duosecurity.com
+      # IMPORTANT: This must match the Redirect URI in Duo Admin Panel.
+      # If deploying to a real server, update 'localhost' to your domain.
+      - Duo__RedirectUri=http://localhost:5000/duo_callback
+    restart: unless-stopped

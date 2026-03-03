@@ -5,9 +5,14 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
+using DuoUniversal.Example.Data;
 
 namespace DuoUniversal.Example
 {
@@ -22,9 +27,18 @@ namespace DuoUniversal.Example
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Bind Duo configuration from appsettings.json or Environment Variables
+            services.Configure<DuoConfig>(Configuration.GetSection("Duo"));
+
             // This is one possible way to make a Duo client factory available, there are many other options.
-            var duoClientProvider = new DuoClientProvider(Configuration);
-            services.AddSingleton<IDuoClientProvider>(duoClientProvider);
+            services.AddSingleton<IDuoClientProvider, DuoClientProvider>();
+
+            // Persist keys to filesystem so session survives app restarts
+            var keysPath = Path.Combine(Directory.GetCurrentDirectory(), "keys");
+            if (!Directory.Exists(keysPath)) Directory.CreateDirectory(keysPath);
+            
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
@@ -32,14 +46,29 @@ namespace DuoUniversal.Example
                 options.IdleTimeout = TimeSpan.FromMinutes(60);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-
+                options.Cookie.Name = ".Duo.Session";
+                // Lax is more compatible with IP addresses and untrusted certificates
+                // It allows the cookie to be sent during the top-level GET redirect from Duo
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
             }
             );
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+
             services.AddRazorPages();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppDbContext dbContext)
         {
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
+            // Create and seed database
+            SeedData.Initialize(dbContext);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -66,39 +95,33 @@ namespace DuoUniversal.Example
 
     internal class DuoClientProvider : IDuoClientProvider
     {
-        private string ClientId { get; }
-        private string ClientSecret { get; }
-        private string ApiHost { get; }
-        private string RedirectUri { get; }
+        private readonly DuoConfig _config;
 
-        public DuoClientProvider(IConfiguration config)
+        public DuoClientProvider(Microsoft.Extensions.Options.IOptions<DuoConfig> duoConfig)
         {
-            ClientId = config.GetValue<string>("Client ID");
-            ClientSecret = config.GetValue<string>("Client Secret");
-            ApiHost = config.GetValue<string>("API Host");
-            RedirectUri = config.GetValue<string>("Redirect URI");
+            _config = duoConfig.Value;
         }
 
         public Client GetDuoClient()
         {
-            if (string.IsNullOrWhiteSpace(ClientId))
+            if (string.IsNullOrWhiteSpace(_config.ClientId))
             {
-                throw new DuoException("A 'Client ID' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:ClientId' configuration value is required (check .env or appsettings.json).");
             }
-            if (string.IsNullOrWhiteSpace(ClientSecret))
+            if (string.IsNullOrWhiteSpace(_config.ClientSecret))
             {
-                throw new DuoException("A 'Client Secret' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:ClientSecret' configuration value is required.");
             }
-            if (string.IsNullOrWhiteSpace(ApiHost))
+            if (string.IsNullOrWhiteSpace(_config.ApiHost))
             {
-                throw new DuoException("An 'Api Host' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:ApiHost' configuration value is required.");
             }
-            if (string.IsNullOrWhiteSpace(RedirectUri))
+            if (string.IsNullOrWhiteSpace(_config.RedirectUri))
             {
-                throw new DuoException("A 'Redirect URI' configuration value is required in the appsettings file.");
+                throw new DuoException("A 'Duo:RedirectUri' configuration value is required.");
             }
 
-            return new ClientBuilder(ClientId, ClientSecret, ApiHost, RedirectUri).Build();
+            return new ClientBuilder(_config.ClientId, _config.ClientSecret, _config.ApiHost, _config.RedirectUri).Build();
         }
     }
 }
