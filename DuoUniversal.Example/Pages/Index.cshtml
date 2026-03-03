@@ -303,6 +303,25 @@
 
         <!-- Login Form -->
         <div>
+            <div class="logo-section">
+                <img src="https://www.itexperts4africa.com/WhiteLogoH.png" alt="IT Experts 4 Africa">
+                <h2>Connexion</h2>
+                <p>Entrez vos identifiants pour continuer</p>
+            </div>
+
+            @if (!Model.IsDuoHealthy)
+            {
+                <div class="error-message" style="background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.7); color: #fbbf24;">
+                    🔸 Duo est actuellement <strong>indisponible</strong>.<br />
+                    Bascule automatique sur l’authentification <strong>traditionnelle</strong> (sans 2FA).
+                </div>
+            }
+            else
+            {
+                <div class="error-message" style="background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.7); color: #bbf7d0;">
+                    ✅ Duo est <strong>opérationnel</strong>. L’authentification se fera avec le second facteur.
+                </div>
+            }
             <div class="login-card">
                 <div class="logo-section">
                     <img src="/images/it-experts-logo.png" alt="IT Experts 4 Africa">

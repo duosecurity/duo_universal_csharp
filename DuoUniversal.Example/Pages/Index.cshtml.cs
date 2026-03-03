@@ -27,6 +27,11 @@ namespace DuoUniversal.Example.Pages
         private readonly IDuoClientProvider _duoClientProvider;
         private readonly AppDbContext _context;
 
+        // Indicator of Duo health
+        public bool IsDuoHealthy { get; private set; } = true;
+        public bool UsedFallbackAuth { get; private set; } = false;
+
+
         public IndexModel(IDuoClientProvider duoClientProvider, AppDbContext context)
         {
             _duoClientProvider = duoClientProvider;
@@ -35,7 +40,8 @@ namespace DuoUniversal.Example.Pages
 
         public void OnGet()
         {
-
+             // éventuellement : on pourrait faire un health check ici aussi en async,
+        // mais pour rester simple on ne le fait qu'au POST (tentative de login).
         }
 
         public async Task<IActionResult> OnPost(string username, string password)
@@ -65,6 +71,30 @@ namespace DuoUniversal.Example.Pages
             // Check if Duo seems to be healthy and able to service authentications.
             // If Duo were unhealthy, you could possibly send user to an error page, or implement a fail mode
             var isDuoHealthy = await duoClient.DoHealthCheck();
+
+            if (!IsDuoHealthy)
+            {
+                // >>> Bascule sur Auth traditionnelle uniquement <<<
+                // Ici tu mets ta logique “vraie” d’authentification : création du ClaimsPrincipal,
+                // cookie d’auth, redirection vers ton appli, etc.
+                //
+                // Exemple minimaliste avec cookie auth (à adapter selon ton projet) :
+                /*
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, username)
+                };
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                */
+
+                UsedFallbackAuth = true;
+                ModelState.AddModelError(string.Empty, "Duo est actuellement indisponible. Connexion réalisée sans 2FA.");
+                return Page(); // ou RedirectToPage("…") vers ton espace appli
+            }
+
+                    // Duo est OK : on continue le flux normal
 
             // Generate a random state value to tie the authentication steps together
             string state = Client.GenerateState();
