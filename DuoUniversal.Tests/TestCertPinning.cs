@@ -124,6 +124,37 @@ namespace DuoUniversal.Tests
 
             Assert.True(pinner(null, CertFromString(MICROSOFT_COM_CERT_SERVER), MicrosoftComChain(), SslPolicyErrors.None));
         }
+
+        [Test]
+        public void TestIntermediateCertMatchProveChainWalk()
+        {
+            // Pin ONLY the intermediate cert's hash — not the root.
+            // This proves the pinner walks up the chain rather than only checking the root.
+            var interHash = CertificatePinnerFactory.ComputeSpkiHash(CertFromString(DUO_API_CERT_INTER));
+            var pinner = new CertificatePinnerFactory(new HashSet<string> { interHash }).GetPinner();
+
+            Assert.True(pinner(null, DuoApiServerCert(), DuoApiChain(), SslPolicyErrors.None));
+        }
+
+        [Test]
+        public void TestLeafCertMatchProveChainWalk()
+        {
+            // Pin ONLY the leaf (server) cert's hash — not root or intermediate.
+            // This proves the pinner checks every level, not just root/intermediate.
+            var leafHash = CertificatePinnerFactory.ComputeSpkiHash(DuoApiServerCert());
+            var pinner = new CertificatePinnerFactory(new HashSet<string> { leafHash }).GetPinner();
+
+            Assert.True(pinner(null, DuoApiServerCert(), DuoApiChain(), SslPolicyErrors.None));
+        }
+
+        [Test]
+        public void TestNoMatchInChainFails()
+        {
+            // Pin a hash that doesn't match anything in the Duo chain.
+            var pinner = new CertificatePinnerFactory(new HashSet<string> { "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" }).GetPinner();
+
+            Assert.False(pinner(null, DuoApiServerCert(), DuoApiChain(), SslPolicyErrors.None));
+        }
     }
 
     [TestFixture]
