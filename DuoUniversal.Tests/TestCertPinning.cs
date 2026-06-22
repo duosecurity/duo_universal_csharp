@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -75,9 +76,9 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
-        public void TestReadCertFile()
+        public void TestGetDuoSpkiHashes()
         {
-            Assert.AreEqual(15, CertificatePinnerFactory.ReadCertsFromFile().Length);
+            Assert.AreEqual(15, CertificatePinnerFactory.GetDuoSpkiHashes().Count);
         }
 
         [Test]
@@ -113,12 +114,13 @@ namespace DuoUniversal.Tests
         [Test]
         public void TestAlternateCertsSuccess()
         {
-            var certCollection = new X509Certificate2Collection
+            var cert = CertFromString(MICROSOFT_COM_CERT_ROOT);
+            var customHashes = new HashSet<string>
             {
-                CertFromString(MICROSOFT_COM_CERT_ROOT)
+                CertificatePinnerFactory.ComputeSpkiHash(cert)
             };
 
-            var pinner = new CertificatePinnerFactory(certCollection).GetPinner();
+            var pinner = new CertificatePinnerFactory(customHashes).GetPinner();
 
             Assert.True(pinner(null, CertFromString(MICROSOFT_COM_CERT_SERVER), MicrosoftComChain(), SslPolicyErrors.None));
         }
