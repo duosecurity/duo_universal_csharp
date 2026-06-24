@@ -24,58 +24,77 @@ namespace DuoUniversal
     {
         private readonly HashSet<string> _pinnedSpkiHashes;
 
+        /// <summary>
+        /// Prepare a Factory to build a certificate pinner for the specified SPKI hashes
+        /// </summary>
+        /// <param name="pinnedSpkiHashes">The SPKI hashes to pin to</param>
         public CertificatePinnerFactory(HashSet<string> pinnedSpkiHashes)
         {
             _pinnedSpkiHashes = pinnedSpkiHashes;
         }
 
         /// <summary>
-        /// Get a certificate pinner that ensures only connections to a specific list of Duo root certificates are allowed.
+        /// Get a certificate pinner that ensures only connections to a specific list of Duo root certificates are allowed
         /// </summary>
+        /// <returns>A Duo certificate pinner for use in an HttpClientHandler</returns>
         public static Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> GetDuoCertificatePinner()
         {
             return new CertificatePinnerFactory(GetDuoSpkiHashes()).PinCertificate;
         }
 
         /// <summary>
-        /// Get a certificate "pinner" that effectively disables SSL certificate validation.
+        /// Get a certificate "pinner" that effectively disables SSL certificate validation
         /// </summary>
+        /// <returns></returns>
         public static Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> GetCertificateDisabler()
         {
             return (httpRequestMessage, certificate, chain, sslPolicyErrors) => { return true; };
         }
 
         /// <summary>
-        /// Get a certificate pinner for use with the provided custom SPKI hashes.
+        /// Get a certificate pinner that ensures only connections to the root certificates provided to the constructor are allowed
         /// </summary>
+        /// <returns>A certificate pinner for use in an HttpClientHandler</returns>
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> GetPinner()
         {
             return PinCertificate;
         }
 
         /// <summary>
-        /// Validates the certificate chain by checking whether any certificate's SPKI hash matches a pinned value.
+        /// Pin only to specified certificates, and reject connections to any others.
+        /// NB that the certificate and chain have already been checked, and the status of that check is available
+        /// in the chain ChainStatus and overall SslPolicyErrors.
         /// </summary>
+        /// <param name="requestMessage">The actual request (unused)</param>
+        /// <param name="certificate">The server certificate presented to the connection</param>
+        /// <param name="chain">The full certificate chain presented to the connection</param>
+        /// <param name="sslPolicyErrors">The current result of the certificate checks</param>
+        /// <returns>true if the connection should be allowed, false otherwise</returns>
         internal bool PinCertificate(HttpRequestMessage requestMessage,
                                      X509Certificate2 certificate,
                                      X509Chain chain,
                                      SslPolicyErrors sslPolicyErrors)
         {
+            // If there's no server certificate or chain, fail
             if (certificate == null || chain == null)
             {
                 return false;
             }
 
+            // If the regular certificate checking process failed, fail
+            // we want everything to be valid, but then just restrict the acceptable certificates
             if (sslPolicyErrors != SslPolicyErrors.None)
             {
                 return false;
             }
 
+            // Double check everything's valid
             if (chain.ChainStatus.Any(status => status.Status != X509ChainStatusFlags.NoError))
             {
                 return false;
             }
 
+            // Check that a certificate in the chain matches a pinned SPKI hash
             foreach (X509ChainElement element in chain.ChainElements)
             {
                 string hash = ComputeSpkiHash(new X509Certificate2(element.Certificate));
