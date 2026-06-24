@@ -1,3 +1,4 @@
+
 # Duo Universal Prompt C# Client
 
 [![Build Status](https://github.com/duosecurity/duo_universal_csharp/workflows/.NET%20CI/badge.svg)](https://github.com/duosecurity/duo_universal_csharp/actions)
