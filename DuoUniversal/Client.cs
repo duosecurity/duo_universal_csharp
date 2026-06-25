@@ -569,7 +569,12 @@ namespace DuoUniversal
 
             if (_customRoots != null)
             {
-                return new CertificatePinnerFactory(_customRoots).GetPinner();
+                var customHashes = new HashSet<string>();
+                foreach (X509Certificate2 cert in _customRoots)
+                {
+                    customHashes.Add(CertificatePinnerFactory.ComputeSpkiHash(cert));
+                }
+                return new CertificatePinnerFactory(customHashes).GetPinner();
             }
 
             return CertificatePinnerFactory.GetDuoCertificatePinner();
