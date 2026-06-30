@@ -361,6 +361,7 @@ namespace DuoUniversal
         private string _additionalUserAgentString;
         private bool _useDuoCodeAttribute = false;
         private bool _sslCertValidation = true;
+        private bool _enableCertPinning = true;
         private X509Certificate2Collection _customRoots = null;
         private IWebProxy proxy = null;
         private string _audienceForSamlResponse = null;
@@ -398,10 +399,23 @@ namespace DuoUniversal
             return this;
         }
 
+        /// <summary>
+        /// Disables certificate pinning while preserving standard SSL/TLS certificate validation.
+        /// The connection will still verify certificate trust, expiry, and hostname — only the
+        /// additional pin check against Duo's root certificate hashes is removed.
+        /// </summary>
+        /// <returns>The ClientBuilder</returns>
+        public ClientBuilder DisableCertificatePinning()
+        {
+            _enableCertPinning = false;
+
+            return this;
+        }
+
         ///  <summary>
         /// Disables SSL certificate validation for the API calls the client makes.
         /// Incomptible with UseCustomRootCertificates since certificates will not be checked.
-        /// 
+        ///
         /// THIS SHOULD NEVER BE USED IN A PRODUCTION ENVIRONMENT
         /// </summary>
         /// <returns>The ClientBuilder</returns>
@@ -565,6 +579,11 @@ namespace DuoUniversal
             if (!_sslCertValidation)
             {
                 return CertificatePinnerFactory.GetCertificateDisabler();
+            }
+
+            if (!_enableCertPinning)
+            {
+                return CertificatePinnerFactory.GetCertificateValidatorWithoutPinning();
             }
 
             if (_customRoots != null)
