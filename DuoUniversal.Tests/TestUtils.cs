@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 
@@ -43,6 +44,33 @@ namespace DuoUniversal.Tests
             Assert.AreEqual(BROWSER, idToken.AuthContext.AccessDevice.Browser);
             Assert.AreEqual(GEO_STATE, idToken.AuthContext.AccessDevice.Location.State);
             Assert.AreEqual(NAME, idToken.AuthContext.User.Name);
+        }
+
+        [Test]
+        public void TestDecodeAmrAbsent()
+        {
+            string jwt = CreateTokenJwt();
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.IsNull(idToken.Amr);
+        }
+
+        [Test]
+        public void TestDecodeAmrEmpty()
+        {
+            string jwt = CreateTokenJwt(amr: new List<string>());
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.IsNotNull(idToken.Amr);
+            Assert.AreEqual(0, idToken.Amr.Count);
+        }
+
+        [Test]
+        public void TestDecodeAmrWithValues()
+        {
+            var expectedAmr = new List<string> { "duo", "mfa" };
+            string jwt = CreateTokenJwt(amr: expectedAmr);
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.IsNotNull(idToken.Amr);
+            Assert.AreEqual(expectedAmr, idToken.Amr);
         }
 
     }

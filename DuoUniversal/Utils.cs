@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -76,12 +77,20 @@ namespace DuoUniversal
                 // Realistically there will only ever be one Audience value
                 var audiences = string.Join(",", token.Audiences);
 
+                List<string> amr = null;
+                var amrClaim = token.TryGetClaim(Labels.AMR, out var amrClaimValue) ? amrClaimValue : null;
+                if (amrClaim != null)
+                {
+                    amr = JsonSerializer.Deserialize<List<string>>(amrClaim.Value);
+                }
+
                 return new IdToken
                 {
                     AuthContext = authContext,
                     AuthResult = authResult,
                     AuthTime = authTime,
                     Username = username,
+                    Amr = amr,
                     Iss = token.Issuer,
                     Exp = token.ValidTo,
                     Iat = token.IssuedAt,

@@ -49,6 +49,7 @@ namespace DuoUniversal
         public AuthResult AuthResult { get; set; }
         public int AuthTime { get; set; }
         public string Username { get; set; }
+        public List<string> Amr { get; set; }
         // Standard JWT stuff
         public string Iss { get; set; }
         public DateTime Exp { get; set; }

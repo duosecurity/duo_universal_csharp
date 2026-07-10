@@ -32,86 +32,108 @@ namespace DuoUniversal.Tests
         protected const string BROWSER = "browser";
         protected const string NAME = "name";
         protected const string GEO_STATE = "state";
-        internal static string CreateTokenJwt()
+        internal static string CreateTokenJwt(List<string> amr = null)
         {
             long sampleIat = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds() - 60;
             long sampleExp = sampleIat + 300; // 5 minutes later
-            // Make a representative id token
-            var payloadData = new
+
+            var authContext = new
             {
-                // Duo claims
-                auth_context = new
+                access_device = new
                 {
-                    access_device = new
+                    browser = BROWSER,
+                    browser_version = "1.2.3.4",
+                    flash_version = "4.3.2.1",
+                    hostname = "hostname",
+                    ip = "100.200.100.200",
+                    is_encryption_enabled = true,
+                    is_firewall_enabled = false,
+                    is_password_set = "unknown",
+                    java_version = "4.3.2.1",
+                    location = new
                     {
-                        browser = BROWSER,
-                        browser_version = "1.2.3.4",
-                        flash_version = "4.3.2.1",
-                        hostname = "hostname",
-                        ip = "100.200.100.200",
-                        is_encryption_enabled = true,
-                        is_firewall_enabled = false,
-                        is_password_set = "unknown",
-                        java_version = "4.3.2.1",
-                        location = new
-                        {
-                            city = "city",
-                            country = "country",
-                            state = GEO_STATE,
-                        },
-                        os = "Mac OS X",
-                        os_version = "10.15.7",
+                        city = "city",
+                        country = "country",
+                        state = GEO_STATE,
                     },
-                    alias = "",
-                    application = new
-                    {
-                        key = "DIXXXXXXXXXXXXXXXXXX",
-                        name = "Web SDK 4",
-                    },
-                    auth_device = new
-                    {
-                        ip = "200.100.200.100",
-                        location = new
-                        {
-                            city = "city",
-                            country = "country",
-                            state = GEO_STATE,
-                        },
-                        name = "name"
-                    },
-                    email = "",
-                    event_type = "authentication",
-                    factor = "duo_push",
-                    isotimestamp = "2021-08-30T18:00:00.00000+00:00",
-                    ood_software = "Windows 3.1",
-                    reason = "user_approved",
-                    result = "success",
-                    timestamp = 1234,
-                    trusted_endpoint_status = "unknown",
-                    txid = "123456",
-                    user = new
-                    {
-                        groups = new List<string>(),
-                        key = "key",
-                        name = NAME
-                    }
+                    os = "Mac OS X",
+                    os_version = "10.15.7",
                 },
-                auth_result = new
+                alias = "",
+                application = new
                 {
-                    result = ALLOW,
-                    status = "allow",
-                    status_msg = "Login successful"
+                    key = "DIXXXXXXXXXXXXXXXXXX",
+                    name = "Web SDK 4",
                 },
-                auth_time = 1234,
-                preferred_username = USERNAME,
-                // Standard JWT stuff fields (exp, nbf, and iat will be automatically added)
-                aud = CLIENT_ID,
-                iss = DUO_ISSUER,
-                sub = "subject",
-                iat = sampleIat,
-                exp = sampleExp
+                auth_device = new
+                {
+                    ip = "200.100.200.100",
+                    location = new
+                    {
+                        city = "city",
+                        country = "country",
+                        state = GEO_STATE,
+                    },
+                    name = "name"
+                },
+                email = "",
+                event_type = "authentication",
+                factor = "duo_push",
+                isotimestamp = "2021-08-30T18:00:00.00000+00:00",
+                ood_software = "Windows 3.1",
+                reason = "user_approved",
+                result = "success",
+                timestamp = 1234,
+                trusted_endpoint_status = "unknown",
+                txid = "123456",
+                user = new
+                {
+                    groups = new List<string>(),
+                    key = "key",
+                    name = NAME
+                }
             };
-            string payload = JsonSerializer.Serialize(payloadData);
+            var authResult = new
+            {
+                result = ALLOW,
+                status = "allow",
+                status_msg = "Login successful"
+            };
+
+            string payload;
+            if (amr != null)
+            {
+                var payloadData = new
+                {
+                    auth_context = authContext,
+                    auth_result = authResult,
+                    auth_time = 1234,
+                    preferred_username = USERNAME,
+                    amr,
+                    aud = CLIENT_ID,
+                    iss = DUO_ISSUER,
+                    sub = "subject",
+                    iat = sampleIat,
+                    exp = sampleExp
+                };
+                payload = JsonSerializer.Serialize(payloadData);
+            }
+            else
+            {
+                var payloadData = new
+                {
+                    auth_context = authContext,
+                    auth_result = authResult,
+                    auth_time = 1234,
+                    preferred_username = USERNAME,
+                    aud = CLIENT_ID,
+                    iss = DUO_ISSUER,
+                    sub = "subject",
+                    iat = sampleIat,
+                    exp = sampleExp
+                };
+                payload = JsonSerializer.Serialize(payloadData);
+            }
 
             return JwtUtils.CreateJwtFromPayload(payload, CLIENT_SECRET);
         }

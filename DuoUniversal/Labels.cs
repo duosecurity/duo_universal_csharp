@@ -35,6 +35,7 @@ namespace DuoUniversal
         public const string SUB = JwtRegisteredClaimNames.Sub;
 
         // Labels for custom Duo claims
+        public const string AMR = "amr";
         public const string AUTH_CONTEXT = "auth_context";
         public const string AUTH_RESULT = "auth_result";
         public const string AUTH_TIME = "auth_time";
