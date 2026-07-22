@@ -21,6 +21,9 @@ namespace DuoUniversal
         public const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
         public const string DUO_UNIVERSAL_CSHARP_VERSION = "1.3.1";
 
+        public const string CA_BUNDLE = "ca_bundle";
+        public const string CA_BUNDLE_VERSION = "1.0";
+
         internal const int CLIENT_ID_LENGTH = 20;
         internal const int CLIENT_SECRET_LENGTH = 40;
         internal const int MINIMUM_STATE_LENGTH = 22;
@@ -625,6 +628,17 @@ namespace DuoUniversal
                 var os = Environment.OSVersion.ToString();
                 ProductInfoHeaderValue stuff = new ProductInfoHeaderValue($"({os})");
                 httpClient.DefaultRequestHeaders.UserAgent.Add(stuff);
+
+                // CA bundle version
+                ProductInfoHeaderValue caBundle = new ProductInfoHeaderValue(Client.CA_BUNDLE, Client.CA_BUNDLE_VERSION);
+                httpClient.DefaultRequestHeaders.UserAgent.Add(caBundle);
+
+                // CA pinning status, reflecting the current runtime state.
+                // Pinning is only performed when it is enabled and SSL certificate validation is on.
+                bool pinningActive = _enableCertPinning && _sslCertValidation;
+                string caPinningStatus = pinningActive ? "enabled" : "disabled";
+                ProductInfoHeaderValue caPinning = new ProductInfoHeaderValue($"(ca_pinning={caPinningStatus})");
+                httpClient.DefaultRequestHeaders.UserAgent.Add(caPinning);
 
                 // Custom additional string
                 if (!string.IsNullOrWhiteSpace(_additionalUserAgentString))

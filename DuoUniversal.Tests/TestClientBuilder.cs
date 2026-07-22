@@ -60,6 +60,36 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
+        public void TestUserAgentCaBundleVersion()
+        {
+            var ua = GetDefaultUA();
+            Assert.True(ua.Contains($"{Client.CA_BUNDLE}/{Client.CA_BUNDLE_VERSION}"));
+        }
+
+        [Test]
+        public void TestUserAgentCaPinningEnabledByDefault()
+        {
+            var ua = GetDefaultUA();
+            Assert.True(ua.Contains("(ca_pinning=enabled)"));
+        }
+
+        [Test]
+        public void TestUserAgentCaPinningDisabled()
+        {
+            var client = BasicBuilder().DisableCertificatePinning().Build();
+            var ua = client.HttpClient.DefaultRequestHeaders.UserAgent.ToString();
+            Assert.True(ua.Contains("(ca_pinning=disabled)"));
+        }
+
+        [Test]
+        public void TestUserAgentCaPinningDisabledWhenSslValidationDisabled()
+        {
+            var client = BasicBuilder().DisableSslCertificateValidation().Build();
+            var ua = client.HttpClient.DefaultRequestHeaders.UserAgent.ToString();
+            Assert.True(ua.Contains("(ca_pinning=disabled)"));
+        }
+
+        [Test]
         [TestCase(null)]
         [TestCase("")]
         [TestCase("    ")]
