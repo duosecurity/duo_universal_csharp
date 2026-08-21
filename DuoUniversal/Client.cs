@@ -19,7 +19,7 @@ namespace DuoUniversal
     public class Client
     {
         public const string DUO_UNIVERSAL_CSHARP = "duo_universal_csharp";
-        public const string DUO_UNIVERSAL_CSHARP_VERSION = "1.3.1";
+        public const string DUO_UNIVERSAL_CSHARP_VERSION = "1.4.0";
 
         public const string CA_BUNDLE = "ca_bundle";
         public const string CA_BUNDLE_VERSION = "1.0";
