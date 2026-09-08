@@ -141,6 +141,10 @@ namespace DuoUniversal
         public string Key { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; }
+        // Duo populates this from the dest_app_name sent in the authentication request, and omits it
+        // when the request did not name a destination application
+        [JsonPropertyName("destination_name")]
+        public string DestinationName { get; set; }
     }
 
     public class AuthDevice
