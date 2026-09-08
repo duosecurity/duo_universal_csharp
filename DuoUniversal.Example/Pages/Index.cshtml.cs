@@ -20,6 +20,7 @@ namespace DuoUniversal.Example.Pages
 
         internal const string STATE_SESSION_KEY = "_State";
         internal const string USERNAME_SESSION_KEY = "_Username";
+        internal const string NONCE_SESSION_KEY = "_Nonce";
 
 
         private readonly IDuoClientProvider _duoClientProvider;
@@ -47,12 +48,16 @@ namespace DuoUniversal.Example.Pages
 
             // Generate a random state value to tie the authentication steps together
             string state = Client.GenerateState();
-            // Save the state and username in the session for later
+            // Generate a random nonce, which Duo will echo back in the Id Token.  This is optional; if you
+            // don't want one, use the GenerateAuthUri overload that does not take a nonce.
+            string nonce = Client.GenerateNonce();
+            // Save the state, nonce, and username in the session for later
             HttpContext.Session.SetString(STATE_SESSION_KEY, state);
+            HttpContext.Session.SetString(NONCE_SESSION_KEY, nonce);
             HttpContext.Session.SetString(USERNAME_SESSION_KEY, username);
 
             // Get the URI of the Duo prompt from the client.  This includes an embedded authentication request.
-            string promptUri = duoClient.GenerateAuthUri(username, state);
+            string promptUri = duoClient.GenerateAuthUri(username, state, nonce);
 
             // Redirect the user's browser to the Duo prompt.
             // The Duo prompt, after authentication, will redirect back to the configured Redirect URI to complete the authentication flow.

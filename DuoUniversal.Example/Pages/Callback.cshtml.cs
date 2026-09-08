@@ -47,10 +47,12 @@ namespace DuoUniversal.Example.Pages
             // The original state value sent to Duo, as well as the username that started the auth, should be stored in the session.
             var sessionState = HttpContext.Session.GetString(IndexModel.STATE_SESSION_KEY);
             var sessionUsername = HttpContext.Session.GetString(IndexModel.USERNAME_SESSION_KEY);
-            // If either is missing, something is wrong.
-            if (string.IsNullOrEmpty(sessionState) || string.IsNullOrEmpty(sessionUsername))
+            // The nonce sent with the authentication request should also be in the session.
+            var sessionNonce = HttpContext.Session.GetString(IndexModel.NONCE_SESSION_KEY);
+            // If any is missing, something is wrong.
+            if (string.IsNullOrEmpty(sessionState) || string.IsNullOrEmpty(sessionUsername) || string.IsNullOrEmpty(sessionNonce))
             {
-                throw new DuoException("State or username were missing from your session");
+                throw new DuoException("State, nonce, or username were missing from your session");
             }
 
             // Confirm the original state (from the session) matches the state sent by Duo; this helps prevents replay attacks or session takeover
@@ -61,8 +63,9 @@ namespace DuoUniversal.Example.Pages
 
             HttpContext.Session.Clear();
 
-            // Get a summary of the authentication from Duo.  This will trigger an exception if the username does not match.
-            IdToken token = await duoClient.ExchangeAuthorizationCodeFor2faResult(code, sessionUsername);
+            // Get a summary of the authentication from Duo.  This will trigger an exception if the username or
+            // the nonce does not match what Duo returned.
+            IdToken token = await duoClient.ExchangeAuthorizationCodeFor2faResult(code, sessionUsername, sessionNonce);
 
             // Do whatever checks you want on the returned information.  For this example, we'll simply print it to an HTML page.
             var options = new JsonSerializerOptions

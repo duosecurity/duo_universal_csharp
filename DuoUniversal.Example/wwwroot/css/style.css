@@ -33,12 +33,23 @@ h3 {
   margin-top: 23px;
 }
 
-pre.language-json {
-  font-size: 20px;
-}
-
+/* The Id Token is tall and its lines are long.  Give the block a definite width so the centering
+   above cannot size it to its widest line: when that happens the block is centered on the window
+   and the start of every line lands at a negative offset, which the browser will not scroll back
+   into view. */
 div.success {
   margin-top: 20px;
+  width: 100%;
+  max-width: 900px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+pre.language-json {
+  font-size: 15px;
+  /* Lines longer than the block scroll here rather than escaping it */
+  overflow-x: auto;
+  text-align: left;
 }
 
 pre.auth-token {

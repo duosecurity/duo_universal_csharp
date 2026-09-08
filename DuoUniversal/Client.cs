@@ -29,6 +29,10 @@ namespace DuoUniversal
         internal const int MINIMUM_STATE_LENGTH = 22;
         internal const int DEFAULT_STATE_LENGTH = 36;
         internal const int MAXIMUM_STATE_LENGTH = 1024;
+        // The Duo OIDC Auth API accepts a nonce of 16 to 1024 characters; see https://duo.com/docs/oauthapi
+        internal const int MINIMUM_NONCE_LENGTH = 16;
+        internal const int DEFAULT_NONCE_LENGTH = 36;
+        internal const int MAXIMUM_NONCE_LENGTH = 1024;
 
         private const string HEALTH_CHECK_ENDPOINT = "https://{0}/oauth/v1/health_check";
         private const string AUTH_ENDPOINT = "https://{0}/oauth/v1/authorize";
@@ -88,11 +92,44 @@ namespace DuoUniversal
         /// <returns>A URL to redirect the user's browser to</returns>
         public string GenerateAuthUri(string username, string state)
         {
+            return GenerateAuthUri(username, state, null, requireNonce: false);
+        }
+
+        /// <summary>
+        /// Generate the URI to a Duo endpoint that will perform a 2FA authentication for the specified user,
+        /// requesting that Duo echo the given nonce back in the Id Token.
+        ///
+        /// Pass the same nonce to ExchangeAuthorizationCodeFor2faResult to have it checked against the Id Token.
+        /// </summary>
+        /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
+        /// <param name="state">A unique identifier for the authentication attempt</param>
+        /// <param name="nonce">A unique value to bind the authentication request to the Id Token</param>
+        /// <returns>A URL to redirect the user's browser to</returns>
+        public string GenerateAuthUri(string username, string state, string nonce)
+        {
+            return GenerateAuthUri(username, state, nonce, requireNonce: true);
+        }
+
+        /// <summary>
+        /// Generate the URI to the Duo prompt, optionally including a nonce
+        /// </summary>
+        /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
+        /// <param name="state">A unique identifier for the authentication attempt</param>
+        /// <param name="nonce">A unique value to bind the authentication request to the Id Token, or null for none</param>
+        /// <param name="requireNonce">Whether the caller asked for a nonce, and so must supply a valid one</param>
+        /// <returns>A URL to redirect the user's browser to</returns>
+        private string GenerateAuthUri(string username, string state, string nonce, bool requireNonce)
+        {
             ValidateAuthUriInputs(username, state, AudienceForSamlResponse);
+
+            if (requireNonce)
+            {
+                ValidateNonce(nonce);
+            }
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
-            string authJwt = GenerateAuthJwt(username, state, authEndpoint);
+            string authJwt = GenerateAuthJwt(username, state, nonce, authEndpoint);
 
             return BuildAuthUri(authEndpoint, authJwt);
         }
@@ -134,11 +171,13 @@ namespace DuoUniversal
 
         /// <summary>
         /// Extracts and validates the Id Token from the response.
-        /// Will raise a DuoException if the username does not match the Id Token.
+        /// Will raise a DuoException if the username, or a requested nonce, does not match the Id Token.
         /// </summary>
-        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="tokenResponse">The response from the Duo token endpoint</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <param name="nonce">The nonce sent in the authentication request, or null if none was sent</param>
         /// <returns>A TokenResponse authenticating the user and describing the authentication</returns>
-        private IdToken ValidateIdTokenFromResponse(TokenResponse tokenResponse, string username)
+        private IdToken ValidateIdTokenFromResponse(TokenResponse tokenResponse, string username, string nonce = null)
         {
             IdToken idToken;
             try
@@ -157,6 +196,12 @@ namespace DuoUniversal
                 throw new DuoException("The specified username does not match the username from Duo");
             }
 
+            // A nonce is opaque, so it must match exactly.  Duo omits the claim entirely if no nonce was sent.
+            if (nonce != null && !string.Equals(idToken.Nonce, nonce, StringComparison.Ordinal))
+            {
+                throw new DuoException("The specified nonce does not match the nonce from Duo");
+            }
+
             return idToken;
         }
 
@@ -169,11 +214,43 @@ namespace DuoUniversal
         /// <param name="duoCode">The one-time use code issued by Duo</param>
         /// <param name="username">The username expected to have authenticated with Duo</param>
         /// <returns>An IdToken authenticating the user and describing the authentication</returns>
-        public async Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username)
+        public Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username)
         {
-            TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
-            return ValidateIdTokenFromResponse(tokenResponse, username);
+            return ExchangeAuthorizationCodeFor2faResult(duoCode, username, null, requireNonce: false);
+        }
 
+        /// <summary>
+        /// Send the authorization code provided by Duo back to Duo in exchange for an Id Token authenticating the user and
+        /// providing details about the authentication.
+        /// Will raise a DuoException if the username or the nonce does not match the Id Token.
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <param name="nonce">The nonce sent to GenerateAuthUri for this authentication</param>
+        /// <returns>An IdToken authenticating the user and describing the authentication</returns>
+        public Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username, string nonce)
+        {
+            return ExchangeAuthorizationCodeFor2faResult(duoCode, username, nonce, requireNonce: true);
+        }
+
+        /// <summary>
+        /// Exchange the authorization code for an Id Token, optionally checking a nonce
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <param name="nonce">The nonce sent to GenerateAuthUri, or null if none was sent</param>
+        /// <param name="requireNonce">Whether the caller asked for a nonce, and so must supply a valid one</param>
+        /// <returns>An IdToken authenticating the user and describing the authentication</returns>
+        private async Task<IdToken> ExchangeAuthorizationCodeFor2faResult(string duoCode, string username, string nonce, bool requireNonce)
+        {
+            if (requireNonce)
+            {
+                ValidateNonce(nonce);
+            }
+
+            TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
+
+            return ValidateIdTokenFromResponse(tokenResponse, username, nonce);
         }
 
         /// <summary>
@@ -183,23 +260,47 @@ namespace DuoUniversal
         /// <param name="duoCode">The one-time use code issued by Duo</param>
         /// <param name="username">The username expected to have authenticated with Duo</param>
         /// <returns>A string authenticating the user and containing the saml response</returns>
-        public async Task<string> ExchangeAuthorizationCodeForSamlResponse(string duoCode, string username)
+        public Task<string> ExchangeAuthorizationCodeForSamlResponse(string duoCode, string username)
         {
-            string samlResponse;
+            return ExchangeAuthorizationCodeForSamlResponse(duoCode, username, null, requireNonce: false);
+        }
+
+        /// <summary>
+        /// Send the authorization code provided by Duo back to Duo in exchange for an SAML response, used for some integrations.
+        /// Will raise a DuoException if the username or the nonce does not match the Id Token.
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <param name="nonce">The nonce sent to GenerateAuthUri for this authentication</param>
+        /// <returns>A string authenticating the user and containing the saml response</returns>
+        public Task<string> ExchangeAuthorizationCodeForSamlResponse(string duoCode, string username, string nonce)
+        {
+            return ExchangeAuthorizationCodeForSamlResponse(duoCode, username, nonce, requireNonce: true);
+        }
+
+        /// <summary>
+        /// Exchange the authorization code for a SAML response, optionally checking a nonce
+        /// </summary>
+        /// <param name="duoCode">The one-time use code issued by Duo</param>
+        /// <param name="username">The username expected to have authenticated with Duo</param>
+        /// <param name="nonce">The nonce sent to GenerateAuthUri, or null if none was sent</param>
+        /// <param name="requireNonce">Whether the caller asked for a nonce, and so must supply a valid one</param>
+        /// <returns>A string authenticating the user and containing the saml response</returns>
+        private async Task<string> ExchangeAuthorizationCodeForSamlResponse(string duoCode, string username, string nonce, bool requireNonce)
+        {
+            if (requireNonce)
+            {
+                ValidateNonce(nonce);
+            }
+
             TokenResponse tokenResponse = await ExchangeAuthorizationCodeResponse(duoCode);
 
-            try
-            {
-                // Calling this method to validate the token, before getting the samlResponse value
-                ValidateIdTokenFromResponse(tokenResponse, username);
-                samlResponse = tokenResponse.SamlResponse;
-            }
-            catch (Exception e)
-            {
-                throw new DuoException("Error while retrieveing saml response", e);
-            }
+            // Validate the token before handing back the SAML response.  Anything that goes wrong here
+            // is already a DuoException naming the cause, so let it propagate rather than reporting a
+            // generic failure and leaving the reason buried in an inner exception.
+            ValidateIdTokenFromResponse(tokenResponse, username, nonce);
 
-            return samlResponse;
+            return tokenResponse.SamlResponse;
         }
 
 
@@ -238,13 +339,28 @@ namespace DuoUniversal
         }
 
         /// <summary>
+        /// Ensure the provided nonce is valid: it cannot be blank/whitespace, and must be between a minimum
+        /// and maximum length.  A nonce is optional, but if one is requested it must be usable; callers that
+        /// do not want a nonce should use the overloads that do not take one.
+        /// </summary>
+        /// <param name="nonce">The nonce value to check</param>
+        private void ValidateNonce(string nonce)
+        {
+            if (string.IsNullOrWhiteSpace(nonce) || nonce.Length < MINIMUM_NONCE_LENGTH || nonce.Length > MAXIMUM_NONCE_LENGTH)
+            {
+                throw new DuoException($"nonce must be a non-empty string between {MINIMUM_NONCE_LENGTH} and {MAXIMUM_NONCE_LENGTH}.");
+            }
+        }
+
+        /// <summary>
         /// Generate a JWT authentication request to be sent to Duo
         /// </summary>
         /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
         /// <param name="state">A unique identifier for the authentication attempt</param>
+        /// <param name="nonce">A unique value to bind the request to the Id Token, or null to not send one</param>
         /// <param name="authEndpoint">The Duo endpoint URI</param>
         /// <returns>A signed JWT</returns>
-        private string GenerateAuthJwt(string username, string state, string authEndpoint)
+        private string GenerateAuthJwt(string username, string state, string nonce, string authEndpoint)
         {
             var additionalClaims = new Dictionary<string, string>
             {
@@ -254,8 +370,13 @@ namespace DuoUniversal
                 {Labels.RESPONSE_TYPE, Labels.CODE},
                 {Labels.SCOPE, Labels.OPENID},
                 {Labels.STATE, state}
-                // TODO support nonce
             };
+
+            // The nonce is optional; omit the claim entirely rather than sending an empty one
+            if (nonce != null)
+            {
+                additionalClaims[Labels.NONCE] = nonce;
+            }
 
             // issuer parameter is used for the Epic Hyperdrive integration only
             if (AudienceForSamlResponse != null)
@@ -343,6 +464,30 @@ namespace DuoUniversal
             if (length > MAXIMUM_STATE_LENGTH || length < MINIMUM_STATE_LENGTH)
             {
                 throw new DuoException($"Invalid state length {length} requested.  State must be between {MINIMUM_STATE_LENGTH} and {MAXIMUM_STATE_LENGTH}");
+            }
+
+            return Utils.GenerateRandomString(length);
+        }
+
+        /// <summary>
+        /// Generate a random nonce at the default length
+        /// </summary>
+        /// <returns>A random nonce string</returns>
+        public static string GenerateNonce()
+        {
+            return GenerateNonce(DEFAULT_NONCE_LENGTH);
+        }
+
+        /// <summary>
+        ///  Generate a random nonce of the specified length; must be between the minimum and maximum lengths allowed by the client.
+        /// </summary>
+        /// <param name="length">The desired length</param>
+        /// <returns>A random nonce string of the specified length</returns>
+        public static string GenerateNonce(int length)
+        {
+            if (length > MAXIMUM_NONCE_LENGTH || length < MINIMUM_NONCE_LENGTH)
+            {
+                throw new DuoException($"Invalid nonce length {length} requested.  Nonce must be between {MINIMUM_NONCE_LENGTH} and {MAXIMUM_NONCE_LENGTH}");
             }
 
             return Utils.GenerateRandomString(length);

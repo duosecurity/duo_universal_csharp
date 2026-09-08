@@ -73,5 +73,22 @@ namespace DuoUniversal.Tests
             Assert.AreEqual(expectedAmr, idToken.Amr);
         }
 
+        [Test]
+        public void TestDecodeNonceAbsent()
+        {
+            string jwt = CreateTokenJwt();
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.IsNull(idToken.Nonce);
+        }
+
+        [Test]
+        public void TestDecodeNonceWithValue()
+        {
+            const string expectedNonce = "a nonce from the authorization request";
+            string jwt = CreateTokenJwt(nonce: expectedNonce);
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.AreEqual(expectedNonce, idToken.Nonce);
+        }
+
     }
 }

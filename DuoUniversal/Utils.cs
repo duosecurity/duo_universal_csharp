@@ -84,6 +84,9 @@ namespace DuoUniversal
                     amr = JsonSerializer.Deserialize<List<string>>(amrClaim.Value);
                 }
 
+                // Duo only sends a nonce back if one was sent in the authentication request
+                string nonce = token.TryGetClaim(Labels.NONCE, out var nonceClaim) ? nonceClaim.Value : null;
+
                 return new IdToken
                 {
                     AuthContext = authContext,
@@ -95,8 +98,8 @@ namespace DuoUniversal
                     Exp = token.ValidTo,
                     Iat = token.IssuedAt,
                     Sub = token.Subject,
-                    Aud = audiences
-                    // TODO Nonce
+                    Aud = audiences,
+                    Nonce = nonce
                 };
             }
             catch (Exception e)

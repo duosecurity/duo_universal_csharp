@@ -32,7 +32,7 @@ namespace DuoUniversal.Tests
         protected const string BROWSER = "browser";
         protected const string NAME = "name";
         protected const string GEO_STATE = "state";
-        internal static string CreateTokenJwt(List<string> amr = null)
+        internal static string CreateTokenJwt(List<string> amr = null, string nonce = null)
         {
             long sampleIat = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds() - 60;
             long sampleExp = sampleIat + 300; // 5 minutes later
@@ -100,42 +100,30 @@ namespace DuoUniversal.Tests
                 status_msg = "Login successful"
             };
 
-            string payload;
+            // Only include the optional claims the caller asked for, so tests can exercise
+            // both the present and absent cases
+            var payloadData = new Dictionary<string, object>
+            {
+                {"auth_context", authContext},
+                {"auth_result", authResult},
+                {"auth_time", 1234},
+                {"preferred_username", USERNAME},
+                {"aud", CLIENT_ID},
+                {"iss", DUO_ISSUER},
+                {"sub", "subject"},
+                {"iat", sampleIat},
+                {"exp", sampleExp}
+            };
             if (amr != null)
             {
-                var payloadData = new
-                {
-                    auth_context = authContext,
-                    auth_result = authResult,
-                    auth_time = 1234,
-                    preferred_username = USERNAME,
-                    amr,
-                    aud = CLIENT_ID,
-                    iss = DUO_ISSUER,
-                    sub = "subject",
-                    iat = sampleIat,
-                    exp = sampleExp
-                };
-                payload = JsonSerializer.Serialize(payloadData);
+                payloadData.Add("amr", amr);
             }
-            else
+            if (nonce != null)
             {
-                var payloadData = new
-                {
-                    auth_context = authContext,
-                    auth_result = authResult,
-                    auth_time = 1234,
-                    preferred_username = USERNAME,
-                    aud = CLIENT_ID,
-                    iss = DUO_ISSUER,
-                    sub = "subject",
-                    iat = sampleIat,
-                    exp = sampleExp
-                };
-                payload = JsonSerializer.Serialize(payloadData);
+                payloadData.Add("nonce", nonce);
             }
 
-            return JwtUtils.CreateJwtFromPayload(payload, CLIENT_SECRET);
+            return JwtUtils.CreateJwtFromPayload(JsonSerializer.Serialize(payloadData), CLIENT_SECRET);
         }
     }
 

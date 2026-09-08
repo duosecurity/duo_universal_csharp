@@ -20,6 +20,7 @@ namespace DuoUniversal
         public const string CLIENT_ID = "client_id";
         public const string GRANT_TYPE = "grant_type";
         public const string JWT_BEARER_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+        public const string NONCE = "nonce";
         public const string OPENID = "openid";
         public const string RESPONSE_TYPE = "response_type";
         public const string SCOPE = "scope";

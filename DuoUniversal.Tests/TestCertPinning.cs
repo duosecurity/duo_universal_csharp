@@ -26,6 +26,11 @@ namespace DuoUniversal.Tests
             // The certificate chain for api-*.duosecurity.com
             var chain = new X509Chain();
             chain.ChainPolicy.VerificationTime = new DateTime(2025, 01, 01);
+            // These tests cover SPKI hash pinning, not revocation.  Leaving revocation checking on its
+            // default of Online makes chain.Build() depend on network access and on how long a CA keeps
+            // answering for a serial: these certificates have since expired, and their responders now
+            // return "unauthorized", which surfaces as RevocationStatusUnknown and fails the build.
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
             chain.ChainPolicy.ExtraStore.Add(CertFromString(DUO_API_CERT_ROOT));
             chain.ChainPolicy.ExtraStore.Add(CertFromString(DUO_API_CERT_INTER));
             bool valid = chain.Build(DuoApiServerCert());
@@ -38,6 +43,11 @@ namespace DuoUniversal.Tests
             // A valid chain, but for www.microsoft.com, not Duo
             var chain = new X509Chain();
             chain.ChainPolicy.VerificationTime = new DateTime(2025, 01, 01);
+            // These tests cover SPKI hash pinning, not revocation.  Leaving revocation checking on its
+            // default of Online makes chain.Build() depend on network access and on how long a CA keeps
+            // answering for a serial: these certificates have since expired, and their responders now
+            // return "unauthorized", which surfaces as RevocationStatusUnknown and fails the build.
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
             chain.ChainPolicy.ExtraStore.Add(CertFromString(MICROSOFT_COM_CERT_ROOT));
             chain.ChainPolicy.ExtraStore.Add(CertFromString(MICROSOFT_COM_CERT_INTER));
             bool valid = chain.Build(CertFromString(MICROSOFT_COM_CERT_SERVER));
