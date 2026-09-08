@@ -56,8 +56,21 @@ namespace DuoUniversal.Example.Pages
             HttpContext.Session.SetString(NONCE_SESSION_KEY, nonce);
             HttpContext.Session.SetString(USERNAME_SESSION_KEY, username);
 
+            // Describe the authentication to Duo.  Username and state are required; everything else is
+            // optional, and Duo leaves out any behavior you don't ask for.
+            var authOptions = new AuthUriOptions(username, state)
+            {
+                Nonce = nonce,
+                // The remaining options are commented out because this example doesn't need them:
+                //   DestAppName = "Acme Intranet",         // named to the user and in the Duo auth log
+                //   DestAppId = "acme-intranet-prod",      // a stable id for it, never shown to the user
+                //   DisplayUsername = "a.smith@acme.com",  // shown in Duo Mobile instead of the username
+                //   MaxAge = 3600,                         // reauthenticate if the last one is older
+                //   Prompt = AuthPrompt.Login,             // always reauthenticate interactively
+            };
+
             // Get the URI of the Duo prompt from the client.  This includes an embedded authentication request.
-            string promptUri = duoClient.GenerateAuthUri(username, state, nonce);
+            string promptUri = duoClient.GenerateAuthUri(authOptions);
 
             // Redirect the user's browser to the Duo prompt.
             // The Duo prompt, after authentication, will redirect back to the configured Redirect URI to complete the authentication flow.
