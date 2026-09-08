@@ -25,9 +25,11 @@ namespace DuoUniversal
         /// <param name="clientId">OIDC Client Id</param>
         /// <param name="clientSecret">OIDC Client secret, used for signing the token</param>
         /// <param name="audience">OIDC Audience</param>
-        /// <param name="additionalClaims">Any additional claims to include in the JWT payload</param>
+        /// <param name="additionalClaims">Any additional claims to include in the JWT payload.  Values are
+        /// serialized by their runtime type, so a claim Duo documents as a number should be passed as one
+        /// rather than as a string</param>
         /// <returns>A signed JWT</returns>
-        internal static string CreateSignedJwt(string clientId, string clientSecret, string audience, IDictionary<string, string> additionalClaims)
+        internal static string CreateSignedJwt(string clientId, string clientSecret, string audience, IDictionary<string, object> additionalClaims)
         {
             ValidateArguments(clientId, clientSecret, audience);
 
@@ -140,9 +142,9 @@ namespace DuoUniversal
         /// <param name="audience">OIDC Audience</param>
         /// <param name="additionalClaims">Any additional claims to include in the JWT payload</param>
         /// <returns>A JSON string of the provided parameters</returns>
-        private static string GeneratePayload(string clientId, string audience, IDictionary<string, string> additionalClaims)
+        private static string GeneratePayload(string clientId, string audience, IDictionary<string, object> additionalClaims)
         {
-            IDictionary<string, string> payloadParams = GenerateParams(clientId, audience, additionalClaims);
+            IDictionary<string, object> payloadParams = GenerateParams(clientId, audience, additionalClaims);
 
             return SerializeParams(payloadParams);
         }
@@ -154,12 +156,12 @@ namespace DuoUniversal
         /// <param name="audience">OIDC Audience</param>
         /// <param name="additionalClaims">Any additional claims to include in the JWT payload</param>
         /// <returns>An IDictionary containing the provided parameters keyed by the offical JWT claims identifiers</returns>
-        private static IDictionary<string, string> GenerateParams(string clientId, string audience, IDictionary<string, string> additionalClaims)
+        private static IDictionary<string, object> GenerateParams(string clientId, string audience, IDictionary<string, object> additionalClaims)
         {
             string jti = Utils.GenerateRandomString(36);
             string exp = CalculateExpiration();
 
-            var claims = new Dictionary<string, string>() {
+            var claims = new Dictionary<string, object>() {
                 {Labels.ISS, clientId},
                 {Labels.AUD, audience},
                 {Labels.JTI, jti},
@@ -167,7 +169,7 @@ namespace DuoUniversal
             };
 
             // Caller can provide additional claims, or overwrite the default ones, if necessary
-            foreach (KeyValuePair<string, string> claim in additionalClaims)
+            foreach (KeyValuePair<string, object> claim in additionalClaims)
             {
                 claims[claim.Key] = claim.Value;
             }
@@ -186,7 +188,7 @@ namespace DuoUniversal
         /// </summary>
         /// <param name="payloadParams">The JWT payload parameters</param>
         /// <returns>A JSON string representation of the provided parameters</returns>
-        private static string SerializeParams(IDictionary<string, string> payloadParams)
+        private static string SerializeParams(IDictionary<string, object> payloadParams)
         {
             return JsonSerializer.Serialize(payloadParams);
         }

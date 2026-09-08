@@ -92,7 +92,7 @@ namespace DuoUniversal
         /// <returns>A URL to redirect the user's browser to</returns>
         public string GenerateAuthUri(string username, string state)
         {
-            return GenerateAuthUri(username, state, null, requireNonce: false);
+            return GenerateAuthUri(new AuthUriOptions(username, state), requireNonce: false);
         }
 
         /// <summary>
@@ -107,29 +107,45 @@ namespace DuoUniversal
         /// <returns>A URL to redirect the user's browser to</returns>
         public string GenerateAuthUri(string username, string state, string nonce)
         {
-            return GenerateAuthUri(username, state, nonce, requireNonce: true);
+            return GenerateAuthUri(new AuthUriOptions(username, state) { Nonce = nonce }, requireNonce: true);
+        }
+
+        /// <summary>
+        /// Generate the URI to a Duo endpoint that will perform a 2FA authentication, for the full set of
+        /// values Duo accepts in an authentication request.
+        /// </summary>
+        /// <param name="options">The values to send to Duo.  Username and state are required</param>
+        /// <returns>A URL to redirect the user's browser to</returns>
+        public string GenerateAuthUri(AuthUriOptions options)
+        {
+            if (options == null)
+            {
+                throw new DuoException("options cannot be null.");
+            }
+
+            // Unlike the overload that takes a nonce positionally, an unset nonce here means the caller
+            // does not want one, rather than that they supplied an unusable one
+            return GenerateAuthUri(options, requireNonce: options.Nonce != null);
         }
 
         /// <summary>
         /// Generate the URI to the Duo prompt, optionally including a nonce
         /// </summary>
-        /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
-        /// <param name="state">A unique identifier for the authentication attempt</param>
-        /// <param name="nonce">A unique value to bind the authentication request to the Id Token, or null for none</param>
+        /// <param name="options">The values to send to Duo</param>
         /// <param name="requireNonce">Whether the caller asked for a nonce, and so must supply a valid one</param>
         /// <returns>A URL to redirect the user's browser to</returns>
-        private string GenerateAuthUri(string username, string state, string nonce, bool requireNonce)
+        private string GenerateAuthUri(AuthUriOptions options, bool requireNonce)
         {
-            ValidateAuthUriInputs(username, state, AudienceForSamlResponse);
+            ValidateAuthUriInputs(options.Username, options.State, AudienceForSamlResponse);
 
             if (requireNonce)
             {
-                ValidateNonce(nonce);
+                ValidateNonce(options.Nonce);
             }
 
             string authEndpoint = CustomizeApiUri(AUTH_ENDPOINT);
 
-            string authJwt = GenerateAuthJwt(username, state, nonce, authEndpoint);
+            string authJwt = GenerateAuthJwt(options, authEndpoint);
 
             return BuildAuthUri(authEndpoint, authJwt);
         }
@@ -355,27 +371,54 @@ namespace DuoUniversal
         /// <summary>
         /// Generate a JWT authentication request to be sent to Duo
         /// </summary>
-        /// <param name="username">The username to authenticate.  Must match a Duo username or alias</param>
-        /// <param name="state">A unique identifier for the authentication attempt</param>
-        /// <param name="nonce">A unique value to bind the request to the Id Token, or null to not send one</param>
+        /// <param name="options">The values to send to Duo</param>
         /// <param name="authEndpoint">The Duo endpoint URI</param>
         /// <returns>A signed JWT</returns>
-        private string GenerateAuthJwt(string username, string state, string nonce, string authEndpoint)
+        private string GenerateAuthJwt(AuthUriOptions options, string authEndpoint)
         {
-            var additionalClaims = new Dictionary<string, string>
+            var additionalClaims = new Dictionary<string, object>
             {
                 {Labels.CLIENT_ID, ClientId},
-                {Labels.DUO_UNAME, username},
+                {Labels.DUO_UNAME, options.Username},
                 {Labels.REDIRECT_URI, RedirectUri},
                 {Labels.RESPONSE_TYPE, Labels.CODE},
                 {Labels.SCOPE, Labels.OPENID},
-                {Labels.STATE, state}
+                {Labels.STATE, options.State}
             };
 
-            // The nonce is optional; omit the claim entirely rather than sending an empty one
-            if (nonce != null)
+            // Duo tells an absent claim apart from one sent with an empty value, so each of the optional
+            // claims below is left out entirely unless the caller set it
+            if (options.Nonce != null)
             {
-                additionalClaims[Labels.NONCE] = nonce;
+                additionalClaims[Labels.NONCE] = options.Nonce;
+            }
+
+            if (options.DestAppName != null)
+            {
+                additionalClaims[Labels.DEST_APP_NAME] = options.DestAppName;
+            }
+
+            if (options.DestAppId != null)
+            {
+                additionalClaims[Labels.DEST_APP_ID] = options.DestAppId;
+            }
+
+            if (options.DisplayUsername != null)
+            {
+                additionalClaims[Labels.DISPLAY_USERNAME] = options.DisplayUsername;
+            }
+
+            // Duo documents max_age as a number, so send it as one rather than as a string
+            if (options.MaxAge != null)
+            {
+                additionalClaims[Labels.MAX_AGE] = options.MaxAge.Value;
+            }
+
+            // The enum keeps callers from inventing a value Duo does not accept, but Duo wants the
+            // lowercase wire value rather than the enum member name
+            if (options.Prompt != null)
+            {
+                additionalClaims[Labels.PROMPT] = Labels.PROMPT_LOGIN;
             }
 
             // issuer parameter is used for the Epic Hyperdrive integration only
@@ -400,7 +443,7 @@ namespace DuoUniversal
         private string GenerateSubjectJwt(string audience)
         {
             // Add the subject claim
-            var additionalClaims = new Dictionary<string, string>
+            var additionalClaims = new Dictionary<string, object>
             {
                 {Labels.SUB, ClientId}
             };
