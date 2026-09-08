@@ -226,6 +226,22 @@ namespace DuoUniversal.Tests
             Assert.AreEqual("login", RequestClaims(authUri)["prompt"].GetString());
         }
 
+        // AuthPrompt has a single member today, so the client can send "login" whenever a prompt is set.
+        // This fails the day a second member is added without teaching the client how to spell it, rather
+        // than letting the new value go to Duo as "login".
+        [Test]
+        public void TestEveryAuthPromptValueIsSentAsADistinctValue()
+        {
+            var values = Enum.GetValues(typeof(AuthPrompt));
+            var sent = new HashSet<string>();
+            foreach (AuthPrompt prompt in values)
+            {
+                var options = new AuthUriOptions(USERNAME, STATE) { Prompt = prompt };
+                sent.Add(RequestClaims(client.GenerateAuthUri(options))["prompt"].GetString());
+            }
+            Assert.AreEqual(values.Length, sent.Count, "Two AuthPrompt values are sent to Duo as the same string");
+        }
+
         // Duo tells an absent claim apart from one present with an empty value, so anything the caller
         // did not set has to stay out of the request rather than going along as null or ""
         [Test]
