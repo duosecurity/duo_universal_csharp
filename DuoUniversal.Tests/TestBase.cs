@@ -32,10 +32,22 @@ namespace DuoUniversal.Tests
         protected const string BROWSER = "browser";
         protected const string NAME = "name";
         protected const string GEO_STATE = "state";
-        internal static string CreateTokenJwt(List<string> amr = null, string nonce = null)
+        internal static string CreateTokenJwt(List<string> amr = null, string nonce = null, string destinationName = null)
         {
             long sampleIat = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds() - 60;
             long sampleExp = sampleIat + 300; // 5 minutes later
+
+            // A dictionary rather than an anonymous object, so that destination_name can be left out
+            // entirely for the case where the authentication did not name a destination application
+            var application = new Dictionary<string, object>
+            {
+                {"key", "DIXXXXXXXXXXXXXXXXXX"},
+                {"name", "Web SDK 4"}
+            };
+            if (destinationName != null)
+            {
+                application.Add("destination_name", destinationName);
+            }
 
             var authContext = new
             {
@@ -60,11 +72,7 @@ namespace DuoUniversal.Tests
                     os_version = "10.15.7",
                 },
                 alias = "",
-                application = new
-                {
-                    key = "DIXXXXXXXXXXXXXXXXXX",
-                    name = "Web SDK 4",
-                },
+                application,
                 auth_device = new
                 {
                     ip = "200.100.200.100",

@@ -82,6 +82,25 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
+        public void TestDecodeDestinationNameAbsent()
+        {
+            string jwt = CreateTokenJwt();
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.IsNull(idToken.AuthContext.Application.DestinationName);
+        }
+
+        // Duo returns the dest_app_name from the authentication request here, so a caller that set one
+        // has to be able to read it back
+        [Test]
+        public void TestDecodeDestinationNameWithValue()
+        {
+            const string expectedDestinationName = "Acme Intranet";
+            string jwt = CreateTokenJwt(destinationName: expectedDestinationName);
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.AreEqual(expectedDestinationName, idToken.AuthContext.Application.DestinationName);
+        }
+
+        [Test]
         public void TestDecodeNonceWithValue()
         {
             const string expectedNonce = "a nonce from the authorization request";

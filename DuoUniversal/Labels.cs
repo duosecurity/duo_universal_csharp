@@ -40,7 +40,13 @@ namespace DuoUniversal
         public const string AUTH_CONTEXT = "auth_context";
         public const string AUTH_RESULT = "auth_result";
         public const string AUTH_TIME = "auth_time";
+        public const string DEST_APP_ID = "dest_app_id";
+        public const string DEST_APP_NAME = "dest_app_name";
+        public const string DISPLAY_USERNAME = "display_username";
         public const string DUO_UNAME = "duo_uname";
+        public const string MAX_AGE = "max_age";
+        public const string PROMPT = "prompt";
+        public const string PROMPT_LOGIN = "login";
         public const string PREFERRED_USERNAME = "preferred_username";
         public const string USE_DUO_CODE_ATTRIBUTE = "use_duo_code_attribute";
         public const string AUDIENCE_FOR_SAML_RESPONSE = "audience_for_saml_response";

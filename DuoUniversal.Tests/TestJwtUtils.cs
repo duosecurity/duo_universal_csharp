@@ -14,7 +14,7 @@ namespace DuoUniversal.Tests
     [TestFixture]
     public class TestJwtUtils : TestBase
     {
-        private readonly IDictionary<string, string> EMPTY_CLAIMS = new Dictionary<string, string>();
+        private readonly IDictionary<string, object> EMPTY_CLAIMS = new Dictionary<string, object>();
 
         [SetUp]
         public void Setup()
@@ -65,7 +65,7 @@ namespace DuoUniversal.Tests
         [Test]
         public void TestCreateAdditionalClaims()
         {
-            var additionalClaims = new Dictionary<string, string>
+            var additionalClaims = new Dictionary<string, object>
             {
                 {Labels.SUB, CLIENT_ID},
                 {"abc", "xyz"}
@@ -198,7 +198,7 @@ namespace DuoUniversal.Tests
 
         // ----- Token methods that use a different JWT library for testing -----
         // Decode and validate the token, assert the parameters are what we expected
-        private static void ValidateToken(string jwt, string secret, string expectedClientId, string expectedAudience, IDictionary<string, string> expectedClaims)
+        private static void ValidateToken(string jwt, string secret, string expectedClientId, string expectedAudience, IDictionary<string, object> expectedClaims)
         {
             // This will raise an exception if, for instance, the signature doesn't validate
             IDictionary<string, string> parameters = JwtBuilder.Create()
@@ -211,7 +211,7 @@ namespace DuoUniversal.Tests
             Assert.IsNotEmpty(parameters[Labels.JTI]);
             Assert.IsNotEmpty(parameters[Labels.EXP]);
 
-            foreach (KeyValuePair<string, string> claim in expectedClaims)
+            foreach (KeyValuePair<string, object> claim in expectedClaims)
             {
                 Assert.AreEqual(claim.Value, parameters[claim.Key]);
             }
