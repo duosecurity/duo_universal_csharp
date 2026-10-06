@@ -77,6 +77,10 @@ namespace DuoUniversal
         /// Pin only to specified certificates, and reject connections to any others.
         /// NB that the certificate and chain have already been checked, and the status of that check is available
         /// in the chain ChainStatus and overall SslPolicyErrors.
+        /// A chain whose only error is that its root is not in the OS trust store (UntrustedRoot) is still
+        /// accepted if it contains a pinned SPKI hash; every other certificate error is rejected.
+        /// A root missing entirely (PartialChain) is rejected, since no root certificates are bundled
+        /// to complete the chain with.
         /// </summary>
         /// <param name="requestMessage">The actual request (unused)</param>
         /// <param name="certificate">The server certificate presented to the connection</param>
@@ -94,16 +98,30 @@ namespace DuoUniversal
                 return false;
             }
 
-            // If the regular certificate checking process failed, fail
-            // we want everything to be valid, but then just restrict the acceptable certificates
-            if (sslPolicyErrors != SslPolicyErrors.None)
+            if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
             {
+                // The pinned hashes, not the OS trust store, are the trust anchor, so tolerate a chain
+                // whose root the OS does not trust -- but only when that is the sole problem. With
+                // UntrustedRoot the platform has still verified signatures, validity periods and
+                // constraints along the chain; any other chain error (expiry, bad signature, etc.) is fatal.
+                bool onlyUntrustedRoot = chain.ChainStatus.All(status =>
+                    status.Status == X509ChainStatusFlags.UntrustedRoot ||
+                    status.Status == X509ChainStatusFlags.NoError);
+                bool anyUntrustedRoot = chain.ChainStatus.Any(status =>
+                    status.Status == X509ChainStatusFlags.UntrustedRoot);
+                if (!onlyUntrustedRoot || !anyUntrustedRoot)
+                {
+                    return false;
+                }
+            }
+            else if (sslPolicyErrors != SslPolicyErrors.None)
+            {
+                // Name mismatch, no certificate, or a chain error combined with either
                 return false;
             }
-
-            // Double check everything's valid
-            if (chain.ChainStatus.Any(status => status.Status != X509ChainStatusFlags.NoError))
+            else if (chain.ChainStatus.Any(status => status.Status != X509ChainStatusFlags.NoError))
             {
+                // Double check everything's valid
                 return false;
             }
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using NUnit.Framework;
 
@@ -116,6 +117,14 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
+        public void TestChainErrorRejected()
+        {
+            // A chain-level error that is not about the root being untrusted must be rejected
+            // even though the chain roots in a pinned CA.
+            Assert.False(duoPinner(null, DuoApiServerCert(), DuoApiChain(), SslPolicyErrors.RemoteCertificateChainErrors));
+        }
+
+        [Test]
         public void TestUnmatchedRoot()
         {
             Assert.False(duoPinner(null, DuoApiServerCert(), MicrosoftComChain(), SslPolicyErrors.None));
@@ -164,6 +173,164 @@ namespace DuoUniversal.Tests
             var pinner = new CertificatePinnerFactory(new HashSet<string> { "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" }).GetPinner();
 
             Assert.False(pinner(null, DuoApiServerCert(), DuoApiChain(), SslPolicyErrors.None));
+        }
+    }
+
+    [TestFixture]
+    public class TestUntrustedRootPinning
+    {
+        // These tests use a freshly generated CA that no OS trust store contains, so the
+        // platform reports UntrustedRoot (root available) or PartialChain (root missing).
+
+        private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
+
+        private static X509Certificate2 CreateCa(string name)
+        {
+            using (var key = RSA.Create(2048))
+            {
+                var req = new CertificateRequest($"CN={name}", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                req.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+                req.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+                req.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
+                return req.CreateSelfSigned(Now.AddDays(-60), Now.AddYears(1));
+            }
+        }
+
+        private static X509Certificate2 CreateLeaf(X509Certificate2 issuer, DateTimeOffset notBefore, DateTimeOffset notAfter)
+        {
+            using (var key = RSA.Create(2048))
+            {
+                var req = new CertificateRequest("CN=api-test.duosecurity.com", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                req.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                req.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(
+                    new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
+                var serial = new byte[8];
+                new Random().NextBytes(serial);
+                serial[0] &= 0x7F;
+                return req.Create(issuer, notBefore, notAfter, serial);
+            }
+        }
+
+        private static X509Certificate2 CreateLeaf(X509Certificate2 issuer)
+        {
+            return CreateLeaf(issuer, Now.AddDays(-1), Now.AddDays(30));
+        }
+
+        private static X509Chain BuildChain(X509Certificate2 leaf, params X509Certificate2[] extra)
+        {
+            var chain = new X509Chain();
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            foreach (var cert in extra)
+            {
+                chain.ChainPolicy.ExtraStore.Add(cert);
+            }
+            chain.Build(leaf);
+            return chain;
+        }
+
+        private static Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> PinnerFor(X509Certificate2 pin)
+        {
+            var hashes = new HashSet<string> { CertificatePinnerFactory.ComputeSpkiHash(pin) };
+            return new CertificatePinnerFactory(hashes).GetPinner();
+        }
+
+        private static bool HasStatus(X509Chain chain, X509ChainStatusFlags flag)
+        {
+            foreach (var status in chain.ChainStatus)
+            {
+                if (status.Status == flag)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [Test]
+        public void TestUntrustedPinnedRootAccepted()
+        {
+            var root = CreateCa("Pinned Test Root");
+            var leaf = CreateLeaf(root);
+            var chain = BuildChain(leaf, root);
+            Assert.True(HasStatus(chain, X509ChainStatusFlags.UntrustedRoot));
+
+            Assert.True(PinnerFor(root)(null, leaf, chain, SslPolicyErrors.RemoteCertificateChainErrors));
+        }
+
+        [Test]
+        public void TestUntrustedUnpinnedRootRejected()
+        {
+            var root = CreateCa("Unpinned Test Root");
+            var leaf = CreateLeaf(root);
+            var chain = BuildChain(leaf, root);
+
+            Assert.False(CertificatePinnerFactory.GetDuoCertificatePinner()(null, leaf, chain, SslPolicyErrors.RemoteCertificateChainErrors));
+        }
+
+        [Test]
+        public void TestMissingRootRejected()
+        {
+            // No root certificates are bundled, so a chain the platform could not complete
+            // cannot be validated and is rejected even though its root is pinned.
+            var root = CreateCa("Pinned Test Root");
+            var leaf = CreateLeaf(root);
+            var chain = BuildChain(leaf);
+            Assert.True(HasStatus(chain, X509ChainStatusFlags.PartialChain));
+
+            Assert.False(PinnerFor(root)(null, leaf, chain, SslPolicyErrors.RemoteCertificateChainErrors));
+        }
+
+        [Test]
+        public void TestUntrustedRootWithNameMismatchRejected()
+        {
+            var root = CreateCa("Pinned Test Root");
+            var leaf = CreateLeaf(root);
+            var chain = BuildChain(leaf, root);
+
+            Assert.False(PinnerFor(root)(null, leaf, chain,
+                SslPolicyErrors.RemoteCertificateChainErrors | SslPolicyErrors.RemoteCertificateNameMismatch));
+        }
+
+        [Test]
+        public void TestUntrustedRootWithExpiredLeafRejected()
+        {
+            var root = CreateCa("Pinned Test Root");
+            var leaf = CreateLeaf(root, Now.AddDays(-30), Now.AddDays(-1));
+            var chain = BuildChain(leaf, root);
+            Assert.True(HasStatus(chain, X509ChainStatusFlags.NotTimeValid));
+
+            Assert.False(PinnerFor(root)(null, leaf, chain, SslPolicyErrors.RemoteCertificateChainErrors));
+        }
+
+        [Test]
+        public void TestForgedIssuerRejected()
+        {
+            // An attacker CA with the same name as the pinned root: the leaf names the pinned
+            // root as issuer but is not signed by its key.
+            var root = CreateCa("Pinned Test Root");
+            var impostor = CreateCa("Pinned Test Root");
+            var leaf = CreateLeaf(impostor);
+            var chain = BuildChain(leaf, root);
+
+            Assert.False(PinnerFor(root)(null, leaf, chain, SslPolicyErrors.RemoteCertificateChainErrors));
+        }
+
+        [Test]
+        public void TestNonCaIssuerRejected()
+        {
+            // A pinned root's end-entity certificate must not be usable to issue certificates.
+            var root = CreateCa("Pinned Test Root");
+            var key = RSA.Create(2048);
+            var req = new CertificateRequest("CN=Not A CA", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            req.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+            var notACa = req.Create(root, Now.AddDays(-1), Now.AddDays(30), new byte[] { 0x01, 0x02, 0x03, 0x04 });
+            // CertificateRequest.Create refuses a non-CA issuer, so sign the leaf directly.
+            var leafReq = new CertificateRequest("CN=api-test.duosecurity.com", RSA.Create(2048), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var leaf = leafReq.Create(notACa.SubjectName, X509SignatureGenerator.CreateForRSA(key, RSASignaturePadding.Pkcs1),
+                                      Now.AddDays(-1), Now.AddDays(30), new byte[] { 0x05, 0x06, 0x07, 0x08 });
+            var chain = BuildChain(leaf, root, notACa);
+
+            Assert.False(PinnerFor(root)(null, leaf, chain, SslPolicyErrors.RemoteCertificateChainErrors));
         }
     }
 
