@@ -831,9 +831,9 @@ namespace DuoUniversal
                     httpClient.DefaultRequestHeaders.UserAgent.Add(custom);
                 }
             }
-            catch (FormatException fe)
+            catch (Exception e) when (e is FormatException || e is IndexOutOfRangeException)
             {
-                throw new DuoException("Invalid User Agent", fe);
+                throw new DuoException("Invalid User Agent", e);
             }
         }
 
