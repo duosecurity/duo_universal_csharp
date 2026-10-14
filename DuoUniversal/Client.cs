@@ -619,6 +619,7 @@ namespace DuoUniversal
 
         /// <summary>
         /// Override the set of Duo root certificates used for certificate pinning.  Provide a collection of acceptable root certificates.
+        /// They replace the bundled Duo certificates as the trust anchors, so they need not be in the OS trust store.
         /// 
         /// Incomptible with DisableSslCertificateValidation - if that is enabled, certificate pinning is not done at all. 
         /// </summary>
@@ -779,12 +780,7 @@ namespace DuoUniversal
 
             if (_customRoots != null)
             {
-                var customHashes = new HashSet<string>();
-                foreach (X509Certificate2 cert in _customRoots)
-                {
-                    customHashes.Add(CertificatePinnerFactory.ComputeSpkiHash(cert));
-                }
-                return new CertificatePinnerFactory(customHashes).GetPinner();
+                return new CertificatePinnerFactory(_customRoots).GetPinner();
             }
 
             return CertificatePinnerFactory.GetDuoCertificatePinner();
@@ -835,9 +831,9 @@ namespace DuoUniversal
                     httpClient.DefaultRequestHeaders.UserAgent.Add(custom);
                 }
             }
-            catch (FormatException fe)
+            catch (Exception e) when (e is FormatException || e is IndexOutOfRangeException)
             {
-                throw new DuoException("Invalid User Agent", fe);
+                throw new DuoException("Invalid User Agent", e);
             }
         }
 
