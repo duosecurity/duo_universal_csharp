@@ -29,6 +29,12 @@ Include it in your .NET project with:
 
 Duo_universal_csharp uses the .NET libraries for TLS operations.  .NET 4.7 or later is required for TLS 1.2; .NET 4.8 or later is required for TLS 1.3.
 
+## Certificate Validation
+
+Duo_universal_csharp trusts only the certificate authorities bundled in `ca_certs.pem`, and does not depend on the operating system trust store containing them. A connection is accepted when the server's certificate chains to one of the bundled certificates and passes the platform's usual checks (hostname, signatures, validity periods, constraints, serverAuth usage, and the operating system's distrust list). This works on hosts whose trust store is missing or out of date, without downloading certificates.
+
+`UseCustomRootCertificates` replaces the bundled certificates with the ones you supply, which should be root certificates. `DisableCertificatePinning` instead validates against the operating system trust store only.
+
 ## Building with the .NET CLI
 Run `dotnet build` to generate the assemblies.
 
