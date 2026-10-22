@@ -77,9 +77,9 @@ namespace DuoUniversal
                 // Realistically there will only ever be one Audience value
                 var audiences = string.Join(",", token.Audiences);
 
-                List<string> amr = token.TryGetPayloadValue<List<string>>(Labels.AMR, out var armClaimValue) 
-                    ? armClaimValue 
-                    : throw new DuoException("AMR claim is missing from the JWT.");
+                List<string> amr = token.TryGetPayloadValue<List<string>>(Labels.AMR, out var armClaimValue)
+                    ? armClaimValue
+                    : null;
 
                 // Duo only sends a nonce back if one was sent in the authentication request
                 string nonce = token.TryGetClaim(Labels.NONCE, out var nonceClaim) ? nonceClaim.Value : null;
