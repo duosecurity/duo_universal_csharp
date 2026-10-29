@@ -11,17 +11,37 @@ on:
 jobs:
   # Build and test on .NET Core
   dotnet-core-ci:
-    name: .NET Core CI - test
+    name: .NET Core CI - test (IdentityModel ${{ matrix.jsonwebtokens || 'minimum' }}, ${{ matrix.amr-code }} amr code, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         # Force use of specific version until https://github.com/dotnet/format/issues/1500 is fixed
         dotnet-version: ['6.0.100']
         os: [ubuntu-latest, windows-latest]
+        # PROBE ONLY, NOT FOR MERGE: test against the latest IdentityModel as well as the minimum
+        jsonwebtokens: ['', '8.23.0']
+        amr-code: [fixed]
+        # Controls: the pre-#70-fix Utils.cs against IdentityModel 8.x. These are EXPECTED TO FAIL
+        include:
+          - os: ubuntu-latest
+            jsonwebtokens: '8.23.0'
+            amr-code: original
+          - os: windows-latest
+            jsonwebtokens: '8.23.0'
+            amr-code: original
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Restore the pre-fix amr parsing (control legs only)
+        if: matrix.amr-code == 'original'
+        shell: bash
+        run: |
+          git fetch --depth=1 origin 1d40b0ffc4b9b2752751dfd4f23a22eb281e5b1e
+          git show FETCH_HEAD:DuoUniversal/Utils.cs > DuoUniversal/Utils.cs
+          git diff --stat
 
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -35,7 +55,15 @@ jobs:
         run: dotnet build
 
       - name: Run tests
-        run: dotnet test
+        shell: bash
+        run: dotnet test -p:JsonWebTokensVersion="$JSON_WEB_TOKENS_VERSION"
+        env:
+          JSON_WEB_TOKENS_VERSION: ${{ matrix.jsonwebtokens }}
+
+      - name: Show the IdentityModel version the tests resolved
+        if: always()
+        shell: bash
+        run: grep -o 'Microsoft.IdentityModel.JsonWebTokens/[0-9.]*' DuoUniversal.Tests/obj/project.assets.json | sort -u
 
       - name: Run linter
         run: dotnet format --verify-no-changes
