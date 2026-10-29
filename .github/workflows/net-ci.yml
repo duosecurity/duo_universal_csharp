@@ -64,5 +64,5 @@ jobs:
         run: msbuild.exe duo_universal_csharp.sln
 
       - name: Run DuoUniversal.Tests
-        run: vstest.console.exe .\DuoUniversal.Tests\bin\Debug\net6.0\DuoUniversal.Tests.dll
+        run: vstest.console.exe .\DuoUniversal.Tests\bin\Debug\net48\DuoUniversal.Tests.dll
 
