@@ -32,7 +32,8 @@ namespace DuoUniversal.Tests
         protected const string BROWSER = "browser";
         protected const string NAME = "name";
         protected const string GEO_STATE = "state";
-        internal static string CreateTokenJwt(List<string> amr = null, string nonce = null, string destinationName = null)
+        // amr is an object so tests can also send malformed, non-array values
+        internal static string CreateTokenJwt(object amr = null, string nonce = null, string destinationName = null)
         {
             long sampleIat = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds() - 60;
             long sampleExp = sampleIat + 300; // 5 minutes later

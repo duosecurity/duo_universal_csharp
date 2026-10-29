@@ -25,6 +25,13 @@
     <Reference Include="System.Web" />
   </ItemGroup>
 
+  <!-- Consumers often resolve a newer IdentityModel than the SDK's minimum through other
+       dependencies (e.g. ASP.NET Core auth). Test against one with
+       dotnet test -p:JsonWebTokensVersion=8.23.0 -->
+  <ItemGroup Condition="'$(JsonWebTokensVersion)' != ''">
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="$(JsonWebTokensVersion)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\DuoUniversal\DuoUniversal.csproj" />
   </ItemGroup>
