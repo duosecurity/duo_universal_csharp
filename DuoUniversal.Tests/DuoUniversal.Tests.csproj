@@ -4,7 +4,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <!-- Also test the SDK's net471 build on .NET Framework, which can only run on Windows -->
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net6.0;net48</TargetFrameworks>
+    <!-- Pin the net6.0 default so the tests compile the same way for .NET Framework -->
+    <LangVersion>10.0</LangVersion>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -15,6 +19,10 @@
     <PackageReference Include="NUnit" Version="3.13.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="coverlet.collector" Version="3.0.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Web" />
   </ItemGroup>
 
   <ItemGroup>
