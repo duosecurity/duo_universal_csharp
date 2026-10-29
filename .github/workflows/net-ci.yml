@@ -23,14 +23,17 @@ jobs:
         # PROBE ONLY, NOT FOR MERGE: test against the latest IdentityModel as well as the minimum
         jsonwebtokens: ['', '8.23.0']
         amr-code: [fixed]
-        # Controls: the pre-#70-fix Utils.cs against IdentityModel 8.x. These are EXPECTED TO FAIL
+        # Controls: the pre-#70-fix Utils.cs against IdentityModel 8.x. These are EXPECTED TO FAIL.
+        # Added combinations don't inherit other matrix values, so dotnet-version is repeated
         include:
           - os: ubuntu-latest
             jsonwebtokens: '8.23.0'
             amr-code: original
+            dotnet-version: '6.0.100'
           - os: windows-latest
             jsonwebtokens: '8.23.0'
             amr-code: original
+            dotnet-version: '6.0.100'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
