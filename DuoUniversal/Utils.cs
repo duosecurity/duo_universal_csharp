@@ -81,7 +81,38 @@ namespace DuoUniversal
                 var amrClaim = token.TryGetClaim(Labels.AMR, out var amrClaimValue) ? amrClaimValue : null;
                 if (amrClaim != null)
                 {
-                    amr = JsonSerializer.Deserialize<List<string>>(amrClaim.Value);
+                    string amrValue = amrClaim.Value;
+                    string trimmedAmrValue = amrValue?.TrimStart();
+
+                    if (!string.IsNullOrEmpty(trimmedAmrValue) && (trimmedAmrValue[0] == '[' || trimmedAmrValue[0] == '"'))
+                    {
+                        using (JsonDocument amrJson = JsonDocument.Parse(amrValue))
+                        {
+                            if (amrJson.RootElement.ValueKind == JsonValueKind.Array)
+                            {
+                                amr = new List<string>();
+                                foreach (JsonElement item in amrJson.RootElement.EnumerateArray())
+                                {
+                                    if (item.ValueKind == JsonValueKind.String)
+                                    {
+                                        amr.Add(item.GetString());
+                                    }
+                                }
+                            }
+                            else if (amrJson.RootElement.ValueKind == JsonValueKind.String)
+                            {
+                                amr = new List<string> { amrJson.RootElement.GetString() };
+                            }
+                            else
+                            {
+                                amr = new List<string> { amrValue };
+                            }
+                        }
+                    }
+                    else
+                    {
+                        amr = new List<string> { amrValue };
+                    }
                 }
 
                 // Duo only sends a nonce back if one was sent in the authentication request
