@@ -74,6 +74,17 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
+        public void TestDecodeAmrSingleValue()
+        {
+            const string expectedAmrValue = "duo_push";
+            string jwt = CreateTokenJwt(amr: expectedAmrValue);
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.IsNotNull(idToken.Amr);
+            Assert.AreEqual(1, idToken.Amr.Count);
+            Assert.AreEqual(expectedAmrValue, idToken.Amr[0]);
+        }
+
+        [Test]
         public void TestDecodeNonceAbsent()
         {
             string jwt = CreateTokenJwt();
