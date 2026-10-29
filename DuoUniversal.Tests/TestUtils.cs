@@ -74,6 +74,33 @@ namespace DuoUniversal.Tests
         }
 
         [Test]
+        public void TestDecodeAmrSingleValue()
+        {
+            var expectedAmr = new List<string> { "pwd" };
+            string jwt = CreateTokenJwt(amr: expectedAmr);
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.AreEqual(expectedAmr, idToken.Amr);
+        }
+
+        [Test]
+        public void TestDecodeAmrKeepsAllValuesInOrder()
+        {
+            var expectedAmr = new List<string> { "pwd", "duo", "mfa", "hwk" };
+            string jwt = CreateTokenJwt(amr: expectedAmr);
+            IdToken idToken = Utils.DecodeToken(jwt);
+            Assert.AreEqual(expectedAmr, idToken.Amr);
+        }
+
+        [Test]
+        [TestCase("pwd")]
+        [TestCase(42)]
+        public void TestDecodeMalformedAmrDoesNotThrow(object amr)
+        {
+            string jwt = CreateTokenJwt(amr: amr);
+            Assert.DoesNotThrow(() => Utils.DecodeToken(jwt));
+        }
+
+        [Test]
         public void TestDecodeNonceAbsent()
         {
             string jwt = CreateTokenJwt();

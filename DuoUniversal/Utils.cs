@@ -77,12 +77,9 @@ namespace DuoUniversal
                 // Realistically there will only ever be one Audience value
                 var audiences = string.Join(",", token.Audiences);
 
-                List<string> amr = null;
-                var amrClaim = token.TryGetClaim(Labels.AMR, out var amrClaimValue) ? amrClaimValue : null;
-                if (amrClaim != null)
-                {
-                    amr = JsonSerializer.Deserialize<List<string>>(amrClaim.Value);
-                }
+                // Read amr from the payload rather than via TryGetClaim: IdentityModel 7+ splits a JSON
+                // array claim into one Claim per element, so TryGetClaim only returns the first value
+                List<string> amr = token.TryGetPayloadValue<List<string>>(Labels.AMR, out var amrValue) ? amrValue : null;
 
                 // Duo only sends a nonce back if one was sent in the authentication request
                 string nonce = token.TryGetClaim(Labels.NONCE, out var nonceClaim) ? nonceClaim.Value : null;
