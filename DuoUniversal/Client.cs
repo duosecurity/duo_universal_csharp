@@ -835,9 +835,11 @@ namespace DuoUniversal
                     httpClient.DefaultRequestHeaders.UserAgent.Add(custom);
                 }
             }
-            catch (FormatException fe)
+            // .NET Framework's header parser throws IndexOutOfRangeException rather than FormatException
+            // for some malformed comments, e.g. unbalanced nested parentheses
+            catch (Exception e) when (e is FormatException || e is IndexOutOfRangeException)
             {
-                throw new DuoException("Invalid User Agent", fe);
+                throw new DuoException("Invalid User Agent", e);
             }
         }
 
